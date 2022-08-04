@@ -20,6 +20,7 @@ class Database:
 
         self.insert_into = self.delete = self.update = partial(self.execute, commit=True)
         self.insert_many = partial(self.execute_many, commit=True)
+        self.close = self.__cnx.close
     
     def execute(self, sql : str, commit : bool=False) -> Any:
         rtr = self.__cursor.execute(sql)
