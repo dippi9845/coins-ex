@@ -1,6 +1,7 @@
 from typing import Any
 import mysql.connector
 from json import loads
+from functools import partial
 
 class Database:
     def __init__(self) -> None:
@@ -16,6 +17,9 @@ class Database:
         )
 
         self.__cursor = self.__cnx.cursor()
+
+        self.insert_into = self.delete = self.update = partial(self.execute, commit=True)
+        self.insert_many = partial(self.execute_many, commit=True)
     
     def execute(self, sql : str, commit : bool=False) -> Any:
         rtr = self.__cursor.execute(sql)
@@ -33,8 +37,7 @@ class Database:
         
         return rtr
     
-    def insert_into(self, sql : str) -> Any:
-        return self.execute(sql, commit=True)
-    
-    def insert_many(self, sql : str, val) -> Any:
-        return self.execute_many(sql, val, commit=True)
+    def select(self, sql : str) -> Any:
+        self.execute(sql)
+        return self.__cursor.fetchall()
+
