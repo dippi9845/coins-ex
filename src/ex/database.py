@@ -32,3 +32,9 @@ class Database:
             self.__cnx.commit()
         
         return rtr
+    
+    def insert_into(self, sql : str) -> Any:
+        return self.execute(sql, commit=True)
+    
+    def insert_many(self, sql : str, val) -> Any:
+        return self.execute_many(sql, val, commit=True)
