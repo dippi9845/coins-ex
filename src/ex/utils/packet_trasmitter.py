@@ -59,7 +59,7 @@ class PacketTransmitter:
     '''
     This class model a calss that is able to send and recive Packet
     '''
-    def __init__(self, buffer_size : int, bind : bool=False, bind_addr : tuple[str, int]=None) -> None:
+    def __init__(self, buffer_size : int=1024, bind : bool=False, bind_addr : tuple[str, int]=None) -> None:
         self.socket = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         
         if bind:
