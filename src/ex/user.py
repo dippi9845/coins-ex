@@ -3,19 +3,19 @@ class User:
     def __init__(self) -> None:
         pass
 
-    def register(self):
+    def _register(self):
         '''
         perform a registration to an exchange
         '''
         pass
 
-    def sell(self):
+    def _sell(self):
         '''
         want to sell crypto
         '''
         pass
 
-    def buy(self):
+    def _buy(self):
         '''
         want to buy crypto
         '''
@@ -30,5 +30,11 @@ class User:
     def _deposit(self):
         '''
         deposit fiat money
+        '''
+        pass
+
+    def run(self):
+        '''
+        keep intercting with the user
         '''
         pass
