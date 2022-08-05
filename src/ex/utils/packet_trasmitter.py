@@ -70,11 +70,11 @@ class PacketTransmitter:
         
         self.buffer_size = buffer_size
     
-    def _send_packet(self, package : Packet, address : tuple[str, int]) -> int:
+    def _send_data(self, data : str | bytes, address : tuple[str, int]) -> int:
         '''
-        Send a generic Packet
+        Send a string or bytes
         '''
-        return self.socket.sendto(package.to_byte(), address)
+        return self.socket.sendto(Packet(data).to_byte(), address)
 
     def _get_packet(self) -> Packet:
         '''
