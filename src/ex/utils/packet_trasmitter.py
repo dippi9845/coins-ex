@@ -59,16 +59,22 @@ class PacketTransmitter:
     '''
     This class model a calss that is able to send and recive Packet
     '''
-    def __init__(self, address : tuple, buffer_size : int) -> None:
+    def __init__(self, buffer_size : int, bind : bool=False, addr : tuple[str, int]=None) -> None:
         self.socket = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-        self.address = address
+        
+        if bind:
+            if addr is None:
+                raise TypeError("Address can't be None if you need to bind the addres")
+
+            self.socket.bind(addr)
+        
         self.buffer_size = buffer_size
     
-    def _send_packet(self, package : Packet) -> int:
+    def _send_packet(self, package : Packet, address : tuple[str, int]) -> int:
         '''
         Send a generic Packet
         '''
-        return self.socket.sendto(package.to_byte(), self.address)
+        return self.socket.sendto(package.to_byte(), address)
 
     def _get_packet(self) -> Packet:
         '''
