@@ -38,3 +38,7 @@ class User:
         keep intercting with the user
         '''
         pass
+
+if __name__ == "__main__":
+    user = User()
+    user.run()
