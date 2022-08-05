@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from hashlib import md5
 from json import dumps, loads
 import socket as sk
@@ -115,9 +114,8 @@ class PacketTransmitter:
         else:
             return bytes.fromhex(package.data)
 
-    @abstractmethod
-    def close():
+    def close(self):
         '''
         close the conncetion
         '''
-        pass
+        self.socket.close()
