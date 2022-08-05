@@ -2,11 +2,23 @@ from ex.view import View
 
 class User:
 
-    ACCESS_EXCHANGE = ["register", "access"]
-    EXCHANGE_COMMANDS = ["deposit", "withdraw", "sell", "buy", "report" ,"exit"]
-
     def __init__(self, view : View) -> None:
         self.__view = view
+        
+        self.access_exchange = {
+            "register" : self._register,
+            "access" : self._access
+        }
+
+        self.exchange_commands = {
+            "deposit" : self._deposit,
+            "withdraw" : self._withdraw,
+            "sell" : self._sell,
+            "buy" : self._buy,
+            "report" : self._report,
+            "exit" : self.exit
+        }
+        
         self.__access_info = None
 
     def _register(self):
@@ -25,7 +37,16 @@ class User:
         '''
         self.__access_info = (self.__view.ask_input("insert email"), self.__view.ask_input("insert password"))
     
+    def _report(self):
+        '''
+        request a report from the exchange
+        '''
+        pass
+
     def exit(self):
+        '''
+        exit from the current exchange
+        '''
         self.__access_info = None
 
     def _sell(self):
