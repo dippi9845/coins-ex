@@ -70,7 +70,7 @@ class PacketTransmitter:
         
         self.buffer_size = buffer_size
     
-    def _send_data(self, data : str | bytes, address : tuple[str, int]) -> int:
+    def send_data(self, data : str | bytes, address : tuple[str, int]) -> int:
         '''
         Send a string or bytes
         '''
@@ -86,7 +86,7 @@ class PacketTransmitter:
 
         return Packet.by_json(data)
     
-    def _get_data(self, timeout_error : str="Timeout reaced", timeout_end="\n", time_out_max=3, type_error_fun=print, to_str : bool=True) -> str | bytes | None:
+    def get_data(self, timeout_error : str="Timeout reaced", timeout_end="\n", time_out_max=3, type_error_fun=print, to_str : bool=True) -> str | bytes | None:
         '''
         Recive a generic Packet, but it doesn't stop after a timeout,
         it simply print the message. If a data corruption is present
