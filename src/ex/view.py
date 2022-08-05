@@ -16,7 +16,14 @@ class View:
         self.show_message("\n")
         self.show_message(list_char)
         self.show_message(f"\n{list_char}".join(choises))
-        return self.ask_input("")
+        ch = self.ask_input("")
+        
+        if ch in choises:
+            return ch
+        
+        else:
+            print(f"{ch} is not an option, retry")
+            return self.menu(msg, choises, list_char=list_char)
 
 
 class TerminalView(View):
