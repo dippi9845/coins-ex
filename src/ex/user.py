@@ -1,4 +1,6 @@
 from ex.view import View
+from utils.packet_trasmitter import PacketTransmitter
+from utils.database import Database
 
 class User:
 
@@ -19,7 +21,9 @@ class User:
             "exit" : self.exit
         }
         
+        self.__exchange_addr = None
         self.__access_info = None
+        self.__database = Database()
 
     def _register(self):
         name = self.__view.ask_input("Insert Name -> ")
@@ -31,6 +35,12 @@ class User:
         telephone = self.__view.ask_input("Insert Telephone -> ")
 
 
+    def _current_exchanges(self) -> list[str]:
+        '''
+        list all currrent databases
+        '''
+        pass
+    
     def _access(self):
         '''
         Asks only the credentials
@@ -42,12 +52,6 @@ class User:
         request a report from the exchange
         '''
         pass
-
-    def exit(self):
-        '''
-        exit from the current exchange
-        '''
-        self.__access_info = None
 
     def _sell(self):
         '''
@@ -78,6 +82,12 @@ class User:
         keep intercting with the user
         '''
         pass
+
+    def exit(self):
+        '''
+        exit from the current exchange
+        '''
+        self.__access_info = None
 
 if __name__ == "__main__":
     user = User()
