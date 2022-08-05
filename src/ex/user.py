@@ -21,4 +21,14 @@ class User:
         '''
         pass
 
-    
+    def _withdraw(self, atm_id : str):
+        '''
+        withdraw fiat money 
+        '''
+        pass
+
+    def _deposit(self):
+        '''
+        deposit fiat money
+        '''
+        pass
