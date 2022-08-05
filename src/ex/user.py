@@ -22,7 +22,9 @@ class User:
         }
         
         self.__exchange_addr = None
+        self.__exchange_name = None
         self.__access_info = None
+        self.__sender = None
         self.__database = Database()
 
     def _register(self):
@@ -34,13 +36,20 @@ class User:
         nationality = self.__view.ask_input("Insert Natinality -> ")
         telephone = self.__view.ask_input("Insert Telephone -> ")
 
+    def _set_exchange(self, name : str, addr : tuple[str, int]):
+        self.__exchange_addr = addr
+        self.__exchange_name = name
 
-    def _current_exchanges(self) -> list[str]:
+    def _current_exchanges(self) -> dict:
         '''
         list all currrent databases
         '''
-        pass
-    
+        # TODO: script per ottenere gli exchange disponibili
+        # solo nome, indirizzo, porta
+        rtr = self.__database.select()
+        # qualche trasformazione ad rtr
+        return rtr
+
     def _access(self):
         '''
         Asks only the credentials
@@ -81,13 +90,25 @@ class User:
         '''
         keep intercting with the user
         '''
-        pass
+        while True:
+            excs = self._current_exchanges()
+            ch = self.__view.menu("Choose avaiable exchanges", excs.keys())
+
+            self._set_exchange(ch, excs.get(ch))
+
+            while True:
+                self.
+
+
 
     def exit(self):
         '''
         exit from the current exchange
         '''
         self.__access_info = None
+        self.__exchange_addr = None
+        self.__access_info = None
+        self.__sender = None
 
 if __name__ == "__main__":
     user = User()
