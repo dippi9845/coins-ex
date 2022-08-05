@@ -28,6 +28,12 @@ class Exchange:
         '''
         pass
 
+    def _deposit(self):
+        '''
+        deposit fiat money
+        '''
+        pass
+
     def _send(self):
         '''
         send money to another user
