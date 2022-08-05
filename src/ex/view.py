@@ -22,7 +22,7 @@ class View:
             return ch
         
         else:
-            print(f"{ch} is not an option, retry")
+            self.show_message(f"{ch} is not an option, retry")
             return self.menu(msg, choises, list_char=list_char)
 
 
