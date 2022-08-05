@@ -57,3 +57,10 @@ class Exchange:
         create an account that contais only fiat money
         '''
         pass
+
+    def run(self):
+        '''
+        run the exchange,
+        will handle for user connections 
+        '''
+        pass
