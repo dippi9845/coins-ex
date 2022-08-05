@@ -17,3 +17,12 @@ class View:
         self.show_message(list_char)
         self.show_message(f"\n{list_char}".join(choises))
         return self.ask_input("")
+
+
+class TerminalView(View):
+
+    def ask_input(self, msg: str) -> str:
+        return input(msg)
+
+    def show_message(self, msg: str) -> Any:
+        return print(msg)
