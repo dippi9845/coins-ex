@@ -1,4 +1,4 @@
-from ex.view import View
+from view import View, TerminalView
 from utils.packet_trasmitter import PacketTransmitter
 from utils.database import Database
 
@@ -113,9 +113,6 @@ class User:
                 self.exchange_commands[ch]()
 
 
-
-
-
     def exit(self):
         '''
         exit from the current exchange
@@ -126,5 +123,5 @@ class User:
         self.__sender = None
 
 if __name__ == "__main__":
-    user = User()
+    user = User(TerminalView())
     user.run()
