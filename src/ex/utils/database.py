@@ -65,3 +65,4 @@ if __name__ == "__main__":
     cursor.execute(f"CREATE DATABASE {DatabaseConfig['database_name']}")
     # crea l'utente
     cursor.execute(f"CREATE USER '{DatabaseConfig['username']}'@'{DatabaseConfig['host']}' IDENTIFIED BY '{DatabaseConfig['password']}'")
+    print("Done")
