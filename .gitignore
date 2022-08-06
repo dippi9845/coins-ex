@@ -3,4 +3,3 @@
 *.gz
 *.pdf
 env/
-config.py
