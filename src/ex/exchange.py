@@ -1,5 +1,5 @@
 from enum import Enum
-from multiprocessing.pool import ThreadPool
+from concurrent.futures import ThreadPoolExecutor
 from ex.utils.packet_trasmitter import PacketTransmitter
 from ex.utils.database import Database
 
@@ -17,9 +17,13 @@ class ExchangeCommands(Enum):
 
 
 class Exchange:
-    def __init__(self, exchange_name : str) -> None:
+
+    COMMAND_SPECIFIER = "cmd"
+
+    def __init__(self, exchange_name : str, processes : int=1) -> None:
         self.__database = Database()
         self.__reciver = PacketTransmitter()
+        self.__pool = ThreadPoolExecutor(max_workers=processes)
         self.__name = exchange_name
         
         self.cmds = {
@@ -116,4 +120,5 @@ class Exchange:
         self.__database.insert_into()
         
         while True:
-            self.__reciver.get_data(timeout_error="")
+            d = self.__reciver.wait_for_command()
+            self.__pool.submit(d.get(self.COMMAND_SPECIFIER), d)
