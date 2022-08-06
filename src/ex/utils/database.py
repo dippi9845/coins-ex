@@ -1,19 +1,18 @@
+from logging import root
 from typing import Any
 import mysql.connector
 from json import loads
 from functools import partial
+from config import DatabaseConfig
 
 class Database:
     def __init__(self) -> None:
         
-        with open("database_config.json", "r") as f:
-            data = loads(f.read())
-        
         self.__cnx = mysql.connector.connect(
-            host=data['host'],
-            user=data['username'],
-            password=data['password'],
-            database=data["database_name"]
+            host=DatabaseConfig['host'],
+            user=DatabaseConfig['username'],
+            password=DatabaseConfig['password'],
+            database=DatabaseConfig["database_name"]
         )
 
         self.__cursor = self.__cnx.cursor()
@@ -42,3 +41,27 @@ class Database:
         self.execute(sql)
         return self.__cursor.fetchall()
 
+if __name__ == "__main__":
+    host = input("Insert hostname (localhost) : ").strip()
+    
+    if host == "":
+        host = "localhost"
+    
+    user = input("Insert user name (root) -> ")
+
+    if user == "":
+        user = "root"
+
+    passw = input(f"Insert {user} password -> ")
+    
+    cnx = mysql.connector.connect(
+        host=host,
+        user=user,
+        password=passw
+    )
+    
+    cursor = cnx.cursor()
+    # crea il database
+    cursor.execute(f"CREATE DATABASE {DatabaseConfig['database_name']}")
+    # crea l'utente
+    cursor.execute(f"CREATE USER '{DatabaseConfig['username']}'@'{DatabaseConfig['host']}' IDENTIFIED BY '{DatabaseConfig['password']}'")
