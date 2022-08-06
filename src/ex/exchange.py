@@ -20,12 +20,12 @@ class Exchange:
 
     COMMAND_SPECIFIER = "cmd"
 
-    def __init__(self, exchange_name : str, processes : int=1) -> None:
+    def __init__(self, exchange_name : str, address : tuple[str, int], processes : int=1) -> None:
         self.__database = Database()
-        self.__reciver = PacketTransmitter()
+        self.__reciver = PacketTransmitter(bind=True, bind_addr=address)
         self.__pool = ThreadPoolExecutor(max_workers=processes)
         self.__name = exchange_name
-        
+
         self.cmds = {
             ExchangeCommands.REGISTER.value : self._register_user,
             ExchangeCommands.GET_COOKIE.value : self._get_cookie,
@@ -51,10 +51,13 @@ class Exchange:
         '''
         pass
 
-    def _register_user(self, name : str, surname : str, email : str, password : str, fiscal_code : str, nationality : str, telephone : str) -> bool:
+    def _register_user(self, d : dict) -> bool:
         '''
         register an new user
         '''
+        # name : str, surname : str, email : str, password : str, fiscal_code : str, nationality : str, telephone : str
+        # aggiungi utente al database
+        # crea un conto in euro
         pass
     
     def _get_cookie(self, email : str, passw : str) -> str:
@@ -67,9 +70,10 @@ class Exchange:
         '''
         returns the report of the user
         '''
+        # restituisci il saldo di tutti conti correnti
         pass
 
-    def _withdraw(self, atm_id : str):
+    def _withdraw(self, d : dict):
         '''
         withdraw fiat money 
         '''
@@ -91,12 +95,16 @@ class Exchange:
         '''
         sell a crypto
         '''
+        # controlla che non ci siano ordini di compra vicini nel database, usa quelli
+        # altrimetti piazzane uno
         pass
 
     def _buy(self):
         '''
         buy a crypto
         '''
+        # controlla che non ci siano ordini di vendita vicini nel database, usa quelli
+        # altrimetti piazzane uno
         pass
 
     def _create_wallet(self) -> str:
