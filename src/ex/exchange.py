@@ -64,6 +64,7 @@ class Exchange:
         '''
         return the cookie to the client
         '''
+        # TODO: maneggiare una risposta indietro
         pass
 
     def _get_report(self, user : str):
