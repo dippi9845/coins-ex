@@ -75,7 +75,7 @@ class PacketTransmitter:
         '''
         return self.socket.sendto(Packet(data).to_byte(), address)
 
-    def _get_packet(self) -> Packet:
+    def _get_packet(self) -> tuple[Packet, tuple[str, int]]:
         '''
         Recive a generic Packet
         '''
@@ -83,7 +83,7 @@ class PacketTransmitter:
         
         data = loads(data.decode())
 
-        return Packet.by_json(data)
+        return Packet.by_json(data), addr
     
     def get_data(self, timeout_error : str="Timeout reaced", timeout_end="\n", time_out_max=3, type_error_fun=print, to_str : bool=True) -> str | bytes | None:
         '''
@@ -113,6 +113,12 @@ class PacketTransmitter:
         
         else:
             return bytes.fromhex(package.data)
+    
+    def wait_for_command(self) -> dict:
+        data, addr = self._get_packet()
+        d = loads(data.to_json())
+        d.update({"address" : addr})
+        return d
 
     def close(self):
         '''
