@@ -24,7 +24,7 @@ class User:
         self.__exchange_addr = None
         self.__exchange_name = None
         self.__access_info = None
-        self.__sender = None
+        self.__sender = PacketTransmitter()
         self.__database = Database()
 
     def _register(self):
@@ -92,12 +92,27 @@ class User:
         '''
         while True:
             excs = self._current_exchanges()
-            ch = self.__view.menu("Choose avaiable exchanges", excs.keys())
+            possibles = set(excs.keys())
+            possibles.update({"", "update"})
+
+            ch = self.__view.menu("Choose avaiable exchanges", possibles)
+            
+            if ch == "":
+                break
+
+            elif ch == "update":
+                continue
 
             self._set_exchange(ch, excs.get(ch))
 
-            while True:
-                self.
+            ch = self.__view.menu(f"Do you want to register or access to {self.__exchange_name}", ["register", "access"])
+            self.access_exchange[ch]()
+
+            while ch != "exit":
+                ch = self.__view.menu(f"What do you want to do on {self.__exchange_name} ?", self.exchange_commands.keys())
+                self.exchange_commands[ch]()
+
+
 
 
 
