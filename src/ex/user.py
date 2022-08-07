@@ -34,13 +34,26 @@ class User:
         self.__sender.send_data(dumps(cmd_data), self.__exchange_addr)
 
     def _register(self):
-        name = self.__view.ask_input("Insert Name -> ")
-        surname = self.__view.ask_input("Insert Surname -> ")
-        email = self.__view.ask_input("Insert Emai -> ")
-        password = self.__view.ask_input("Insert Password -> ")
-        fiscal_code = self.__view.ask_input("Insert Fiscal Code -> ")
-        nationality = self.__view.ask_input("Insert Natinality -> ")
-        telephone = self.__view.ask_input("Insert Telephone -> ")
+        to_send = {
+            ExchangeCommands.COMMAND_SPECIFIER.value : ExchangeCommands.REGISTER.value,
+            "name" : self.__view.ask_input("Insert Name -> "),
+            "surname" : self.__view.ask_input("Insert Surname -> "),
+            "email" : self.__view.ask_input("Insert Emai -> "),
+            "password" : self.__view.ask_input("Insert Password -> "),
+            "fiscal_code" : self.__view.ask_input("Insert Fiscal Code -> "),
+            "nationality" : self.__view.ask_input("Insert Natinality -> "),
+            "telephone" : self.__view.ask_input("Insert Telephone -> ")
+
+        }
+
+        self.__send_to_exchange(to_send)
+        self.__access_info, _ = self.__sender.get_data()
+
+        if self.__access_info is None:
+            return False
+        
+        else:
+            return True
 
     def _set_exchange(self, name : str, addr : tuple[str, int]):
         self.__exchange_addr = addr
@@ -66,9 +79,9 @@ class User:
         }
         
         self.__send_to_exchange(to_send)
-        self.__access_info, addr = self.__sender.get_data()
+        self.__access_info, _ = self.__sender.get_data()
 
-        if self.__access_info is None or addr is not self.__exchange_addr:
+        if self.__access_info is None:
             return False
         
         else:
@@ -124,11 +137,13 @@ class User:
             self._set_exchange(ch, excs.get(ch))
 
             ch = self.__view.menu(f"Do you want to register or access to {self.__exchange_name}", ["register", "access"])
-            self.access_exchange[ch]()
-
-            while ch != "exit":
-                ch = self.__view.menu(f"What do you want to do on {self.__exchange_name} ?", self.exchange_commands.keys())
-                self.exchange_commands[ch]()
+            
+            if self.access_exchange[ch]():
+                while ch != "exit":
+                    ch = self.__view.menu(f"What do you want to do on {self.__exchange_name} ?", self.exchange_commands.keys())
+                    self.exchange_commands[ch]()
+            else:
+                print(f"error during {ch}")
 
 
     def exit(self):
