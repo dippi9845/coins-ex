@@ -37,8 +37,15 @@ create table Wallet (
 	primary key (Indirizzo);
 );
 
+create table Fiat (
+	Nome varchar(255) not null,
+	Ticker varchar(255) not null,
+	primary key (Ticker));
+
 create table Crypto (
-);
+	Nome varchar(255) not null,
+	Ticker varchar(255) not null,
+	primary key (Ticker));
 
 create table Dipendente (
 	Carica varchar(255) not null,
@@ -61,9 +68,6 @@ create table Exchange (
 	unique (Sede Operativa),
 	unique (Sede Legale),
 	primary key (Nome));
-
-create table Fiat (
-);
 
 create table Ordine (
 	`Tipo Ordine` ENUM("Vende", "Compra") not null,
@@ -105,11 +109,6 @@ create table Utente (
 	`Codice Fiscale` varchar(255) not null,
 	primary key (ID),
 	unique (Codice Fiscale));
-
-create table Valuta (
-	Nome varchar(255) not null,
-	Ticker varchar(255) not null,
-	primary key (Ticker));
 
 -- Constraints Section
 -- ___________________
