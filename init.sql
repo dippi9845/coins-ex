@@ -25,12 +25,16 @@ create table ATM (
 	`Spread attuale` int not null CHECK (`Spread attuale` > 0),
 	primary key (Codice Icentificativo));
 
-create table Conto (
+create table ContoCorrente (
 	Indirizzo varchar(255) not null,
 	Saldo varchar(255) not null,
-	primary key (Indirizzo));
+	primary key (Indirizzo);
+);
 
-create table ContoCorrente (
+create table Wallet (
+	Indirizzo varchar(255) not null,
+	Saldo varchar(255) not null,
+	primary key (Indirizzo);
 );
 
 create table Crypto (
@@ -106,10 +110,6 @@ create table Valuta (
 	Nome varchar(255) not null,
 	Ticker varchar(255) not null,
 	primary key (Ticker));
-
-create table Wallet (
-);
-
 
 -- Constraints Section
 -- ___________________
