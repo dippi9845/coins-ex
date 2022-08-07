@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from packet_trasmitter import PacketTransmitter
 from database import Database
 import signal
+from json import loads
 
 class ExchangeCommands(Enum):
     REGISTER = "register"
@@ -123,6 +124,17 @@ class Exchange:
         '''
         pass
 
+    def __wait_for_command(self) -> dict:
+        data = ''
+        addr = ''
+        
+        while data is not None and addr is not None:
+            data, addr = self.__reciver.get_data()
+        
+        d = loads(data)
+        d.update({"address" : addr})
+        return d
+
     def run(self):
         '''
         run the exchange,
@@ -131,10 +143,11 @@ class Exchange:
         self.__database.insert_into(f"INSERT INTO running_exchanges VALUES ('{self.__name}', '{self.__address[0]}', {self.__address[1]})")
         
         while True:
-            d = self.__reciver.wait_for_command()
+            d = self.__wait_for_command()
             self.__pool.submit(d.get(self.COMMAND_SPECIFIER), d)
     
     def close(self, *arguments):
+        print("mi cancello dalla lista in esecuzione")
         self.__database.delete(f"DELETE FROM running_exchanges WHERE host = {self.__address[0]} AND port = {self.__address[1]}")
         self.__database.close()
         self.__reciver.close()
