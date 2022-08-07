@@ -1,9 +1,11 @@
+from calendar import day_abbr
 from enum import Enum
 from concurrent.futures import ThreadPoolExecutor
 from packet_trasmitter import PacketTransmitter
 from database import Database
 import signal
 from json import loads, dumps
+from threading import Thread
 
 class ExchangeCommands(Enum):
     REGISTER = "register"
@@ -19,13 +21,14 @@ class ExchangeCommands(Enum):
     COMMAND_SPECIFIER = "cmd"
 
 
-class ExchangeServer:
+class ExchangeServer(Thread):
 
-    def __init__(self, exchange_name : str, address : tuple[str, int], processes : int=1) -> None:
+    def __init__(self, exchange_name : str, address : tuple[str, int]=("localhost", 31415), processes : int=1) -> None:
         self.__database = Database()
         self.__reciver = PacketTransmitter(bind=True, bind_addr=address)
         self.__pool = ThreadPoolExecutor(max_workers=processes)
         self.__name = exchange_name
+        self.__to_run = True
         self.__address = address
         signal.signal(signal.SIGINT, self.close)
 
@@ -148,6 +151,12 @@ class ExchangeServer:
         d.update({"address" : addr})
         return d
 
+    def _close(self, *arguments):
+        self.__database.delete(f"DELETE FROM running_exchanges WHERE host = '{self.__address[0]}' AND port = {self.__address[1]}")
+        self.__reciver.close()
+        self.__database.close()
+        self.__pool.shutdown(wait=True)
+    
     def run(self):
         '''
         run the exchange,
@@ -155,18 +164,21 @@ class ExchangeServer:
         '''
         self.__database.insert_into(f"INSERT INTO running_exchanges VALUES ('{self.__name}', '{self.__address[0]}', {self.__address[1]})")
         
-        while True:
+        while self.__to_run:
             d = self.__wait_for_command()
             self.__pool.submit(self.cmds.get(d.get(ExchangeCommands.COMMAND_SPECIFIER.value)), d)
+        
+        self._close()
     
-    def close(self, *arguments):
-        self.__database.delete(f"DELETE FROM running_exchanges WHERE host = '{self.__address[0]}' AND port = {self.__address[1]}")
-        self.__reciver.close()
-        self.__database.close()
-        self.__pool.shutdown(wait=True)
-        exit(0)
+    def stop(self):
+        self.__to_run = False
+    
 
 
+class Exchange:
+    def __init__(self, name : str) -> None:
+        self.__database = Database()
+        self.__server = ExchangeServer(name)
         
 
 if __name__ == "__main__":
@@ -186,8 +198,4 @@ if __name__ == "__main__":
         print("you have to provide a name of the exchange")
         exit(0)
     
-    port = next(iter, 31415)
-    host = next(iter, "localhost")
-    workers = next(iter, 1)
-    exc = ExchangeServer(name, (host, port), processes=workers)
-    exc.run()
+    
