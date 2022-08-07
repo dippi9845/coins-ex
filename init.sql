@@ -23,18 +23,18 @@ create table ATM (
 	Modello varchar(255) not null,
 	`Versione Software` varchar(255) not null,
 	`Spread attuale` int not null CHECK (`Spread attuale` > 0),
-	primary key (Codice Icentificativo));
+	primary key (`Codice Icentificativo`));
 
 create table ContoCorrente (
 	Indirizzo varchar(255) not null,
 	Saldo varchar(255) not null,
-	primary key (Indirizzo);
+	primary key (Indirizzo)
 );
 
 create table Wallet (
 	Indirizzo varchar(255) not null,
 	Saldo varchar(255) not null,
-	primary key (Indirizzo);
+	primary key (Indirizzo)
 );
 
 create table Fiat (
@@ -64,22 +64,22 @@ create table Exchange (
 	Nazione varchar(255) not null,
 	`Sito web` varchar(255) not null,
 	Fondatore varchar(255) not null,
-	unique (Sito web),
-	unique (Sede Operativa),
-	unique (Sede Legale),
+	unique (`Sito web`),
+	unique (`Sede Operativa`),
+	unique (`Sede Legale`),
 	primary key (Nome));
 
 create table Ordine (
 	`Tipo Ordine` ENUM("Vende", "Compra") not null,
-	Quantità int not null CHECK (Quantità > 0),
-	Data date DEFAULT CURDATE(),
-	Ora time DEFAULT CURTIME(),
-	primary key (, Data, Ora));
+	Quantita int not null CHECK (Quantita > 0),
+	Data date DEFAULT CURRENT_DATE(),
+	Ora time DEFAULT CURRENT_TIME(),
+	primary key (Data, Ora));
 
 create table Server (
 	Host varchar(255) not null,
 	Porta int not null,
-	CONSTRAINT Hosting UNIQUE (Host,Porta);
+	CONSTRAINT Hosting UNIQUE (Host,Porta));
 
 create table Transazione (
 	Quantità int not null CHECK (Quantità > 0),
@@ -108,7 +108,7 @@ create table Utente (
 	`Data di nascita` date not null,
 	`Codice Fiscale` varchar(255) not null,
 	primary key (ID),
-	unique (Codice Fiscale));
+	unique (`Codice Fiscale`));
 
 -- Constraints Section
 -- ___________________
