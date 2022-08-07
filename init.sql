@@ -16,18 +16,18 @@ create database Exchange;
 -- _____________
 
 create table ATM (
-	Via char(1) not null,
-	Città char(1) not null,
-	Provincia char(1) not null,
-	Codice Icentificativo char(1) not null,
-	Modello char(1) not null,
-	Versione Software char(1) not null,
-	Spread attuale char(1) not null,
+	Via varchar(255) not null,
+	Città varchar(255) not null,
+	Provincia varchar(255) not null,
+	`Codice Icentificativo` varchar(255) not null,
+	Modello varchar(255) not null,
+	`Versione Software` varchar(255) not null,
+	`Spread attuale` int not null CHECK (`Spread attuale` > 0),
 	primary key (Codice Icentificativo));
 
 create table Conto (
-	Indirizzo char(1) not null,
-	Saldo char(1) not null,
+	Indirizzo varchar(255) not null,
+	Saldo varchar(255) not null,
 	primary key (Indirizzo));
 
 create table ContoCorrente (
@@ -37,23 +37,22 @@ create table Crypto (
 );
 
 create table Dipendente (
-	Carica char(1) not null,
-	Reparto char(1) not null,
-	Nome char(1) not null,
-	Cognome char(1) not null,
-	Residenza char(1) not null,
-	Matricola char(1) not null,
-	Salario char(1) not null,
+	Carica varchar(255) not null,
+	Reparto varchar(255) not null,
+	Nome varchar(255) not null,
+	Cognome varchar(255) not null,
+	Residenza varchar(255) not null,
+	Matricola varchar(255) not null,
+	Salario int not null CHECK (Salario>0),
 	primary key (Matricola));
 
 create table Exchange (
-	Nome char(1) not null,
-	Sede Operativa char(1) not null,
-	Sede Legale char(1) not null,
-	Nazione char(1) not null,
-	Sito web char(1) not null,
-	Fondatore char(1) not null,
-	New attribute char(1) not null,
+	Nome varchar(255) not null,
+	`Sede Operativa` varchar(255) not null,
+	`Sede Legale` varchar(255) not null,
+	Nazione varchar(255) not null,
+	`Sito web` varchar(255) not null,
+	Fondatore varchar(255) not null,
 	unique (Sito web),
 	unique (Sede Operativa),
 	unique (Sede Legale),
@@ -63,51 +62,49 @@ create table Fiat (
 );
 
 create table Ordine (
-	Tipo Ordine char(1) not null,
-	Quantità char(1) not null,
-	Data char(1) not null,
-	Ora char(1) not null,
+	`Tipo Ordine` ENUM("Vende", "Compra") not null,
+	Quantità int not null CHECK (Quantità > 0),
+	Data date DEFAULT CURDATE(),
+	Ora time DEFAULT CURTIME(),
 	primary key (, Data, Ora));
 
 create table Server (
-	Host char(1) not null,
-	Porta char(1) not null,
-	Nome -- ERROR
-,
-	primary key (Nome -- atr decomp --));
+	Host varchar(255) not null,
+	Porta int not null,
+	CONSTRAINT Hosting UNIQUE (Host,Porta);
 
 create table Transazione (
-	Quantità char(1) not null,
-	Ora char(1) not null,
-	Data char(1) not null,
+	Quantità int not null CHECK (Quantità > 0),
+	Ora date DEFAULT CURDATE(),
+	Data time DEFAULT CURTIME(),
 	primary key (, Ora, Data),
 	unique (, Ora, Data));
 
 create table Transazione_fisica (
-	Cambio attuale char(1) not null,
-	Quantità char(1) not null,
-	Spread char(1) not null,
-	Data char(1) not null,
-	Ora char(1) not null,
+	`Cambio attuale` int not null CHECK (`Cambio attuale` > 0),
+	Quantità int not null CHECK (Quantità>0),
+	Spread int not null CHECK (Spread > 0),
+	Data date DEFAULT CURDATE(),
+	Ora time DEFAULT CURTIME(),
 	primary key (Data, Ora));
 
 create table Utente (
-	ID char(1) not null,
-	Email char(1) not null,
-	Password char(1) not null,
-	Nome char(1) not null,
-	Cognome char(1) not null,
-	Nazionalità char(1) not null,
-	Residenza char(1) not null,
-	Numero Di Telefono char(1) not null,
-	Data di nascita char(1) not null,
-	Codice Fiscale char(1) not null,
+	ID int AUTO_INCREMENT,
+	Email varchar(255) not null,
+	Password varchar(255) not null,
+	Nome varchar(255) not null,
+	Cognome varchar(255) not null,
+	Nazionalità varchar(255) not null,
+	Residenza varchar(255) not null,
+	`Numero Di Telefono` varchar(255) not null,
+	`Data di nascita` date not null,
+	`Codice Fiscale` varchar(255) not null,
 	primary key (ID),
 	unique (Codice Fiscale));
 
 create table Valuta (
-	Nome char(1) not null,
-	Ticker char(1) not null,
+	Nome varchar(255) not null,
+	Ticker varchar(255) not null,
 	primary key (Ticker));
 
 create table Wallet (
