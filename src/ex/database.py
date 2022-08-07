@@ -61,13 +61,11 @@ if __name__ == "__main__":
     )
     
     cursor = cnx.cursor()
-    # crea il database
-    cursor.execute(f"CREATE DATABASE {DatabaseConfig['database_name']}")
-    # crea l'utente
-    cursor.execute(f"CREATE USER '{DatabaseConfig['username']}'@'{DatabaseConfig['host']}' IDENTIFIED BY '{DatabaseConfig['password']}'")
-    cursor.execute(f"GRANT ALL PRIVILEGES ON `{DatabaseConfig['database_name']}` . * TO '{DatabaseConfig['username']}'@'{DatabaseConfig['host']}'")
-    cursor.execute("FLUSH PRIVILEGES")
-    # crea tabella echanges online
-    cursor.execute(f"USE {DatabaseConfig['database_name']}")
-    cursor.execute("CREATE TABLE running_exchanges (name VARCHAR(255), host VARCHAR(255), port INT)")
+    
+    with open("../../init.sql", "r") as f:
+        query = f.read().split(";")
+    
+    for i in query:
+        cursor.execute(i)
+
     print("Done")
