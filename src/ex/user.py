@@ -55,7 +55,7 @@ class User:
         rtr = reduce(lambda a, b: {**a, **b}, rtr)
         return rtr
 
-    def _access(self):
+    def _access(self) -> bool:
         '''
         Asks only the credentials
         '''
@@ -66,7 +66,14 @@ class User:
         }
         
         self.__send_to_exchange(to_send)
-    
+        self.__access_info, addr = self.__sender.get_data()
+
+        if self.__access_info is None or addr is not self.__exchange_addr:
+            return False
+        
+        else:
+            return True
+
     def _report(self):
         '''
         request a report from the exchange
