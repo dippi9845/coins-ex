@@ -2,6 +2,8 @@ from view import View, TerminalView
 from packet_trasmitter import PacketTransmitter
 from database import Database
 from functools import reduce
+from  json import dumps
+from exchange import ExchangeCommands
 
 class User:
 
@@ -27,6 +29,9 @@ class User:
         self.__access_info = None
         self.__sender = PacketTransmitter()
         self.__database = Database()
+    
+    def __send_to_exchange(self, cmd_data : dict):
+        self.__sender.send_data(dumps(cmd_data), self.__exchange_addr)
 
     def _register(self):
         name = self.__view.ask_input("Insert Name -> ")
@@ -54,7 +59,13 @@ class User:
         '''
         Asks only the credentials
         '''
-        self.__access_info = (self.__view.ask_input("insert email"), self.__view.ask_input("insert password"))
+        to_send = {
+            ExchangeCommands.COMMAND_SPECIFIER.value : ExchangeCommands.GET_COOKIE.value,
+            "email" : self.__view.ask_input("insert email -> "),
+            "password" : self.__view.ask_input("insert password -> ")
+        }
+        
+        self.__send_to_exchange(to_send)
     
     def _report(self):
         '''
