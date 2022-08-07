@@ -1,6 +1,7 @@
 from view import View, TerminalView
 from packet_trasmitter import PacketTransmitter
 from database import Database
+from functools import reduce
 
 class User:
 
@@ -44,10 +45,9 @@ class User:
         '''
         list all currrent databases
         '''
-        # TODO: script per ottenere gli exchange disponibili
-        # solo nome, indirizzo, porta
-        rtr = self.__database.select()
-        # qualche trasformazione ad rtr
+        rtr = self.__database.select("SELECT name, host, port FROM running_exchanges")
+        rtr = list(map(lambda x: {x[0] : (x[1], x[2])}, rtr))
+        rtr = reduce(lambda a, b: {**a, **b}, rtr)
         return rtr
 
     def _access(self):
