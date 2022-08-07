@@ -3,19 +3,20 @@
 -- ***************************
 
 
--- Database Section
+-- DATABASE Section
 -- ________________
 
-create database Exchange;
+DROP DATABASE IF EXISTS exchanges;
+CREATE DATABASE exchanges;
+USE exchanges;
 
-
--- TableSpace Section
+-- TABLESpace Section
 -- __________________
 
--- Table Section
+-- TABLE Section
 -- _____________
-
-create table ATM (
+DROP TABLE IF EXISTS ATM;
+CREATE TABLE ATM (
 	Via varchar(255) not null,
 	Citta varchar(255) not null,
 	Provincia varchar(255) not null,
@@ -25,29 +26,34 @@ create table ATM (
 	`Spread attuale` int not null CHECK (`Spread attuale` > 0),
 	primary key (`Codice Icentificativo`));
 
-create table ContoCorrente (
+DROP TABLE IF EXISTS ContoCorrente;
+CREATE TABLE ContoCorrente (
 	Indirizzo varchar(255) not null,
 	Saldo varchar(255) not null,
 	primary key (Indirizzo)
 );
 
-create table Wallet (
+DROP TABLE IF EXISTS Wallet;
+CREATE TABLE Wallet (
 	Indirizzo varchar(255) not null,
 	Saldo varchar(255) not null,
 	primary key (Indirizzo)
 );
 
-create table Fiat (
+DROP TABLE IF EXISTS Fiat;
+CREATE TABLE Fiat (
 	Nome varchar(255) not null,
 	Ticker varchar(255) not null,
 	primary key (Ticker));
 
-create table Crypto (
+DROP TABLE IF EXISTS Crypto;
+CREATE TABLE Crypto (
 	Nome varchar(255) not null,
 	Ticker varchar(255) not null,
 	primary key (Ticker));
 
-create table Dipendente (
+DROP TABLE IF EXISTS Dipendente;
+CREATE TABLE Dipendente (
 	Carica varchar(255) not null,
 	Reparto varchar(255) not null,
 	Nome varchar(255) not null,
@@ -57,7 +63,8 @@ create table Dipendente (
 	Salario int not null CHECK (Salario>0),
 	primary key (Matricola));
 
-create table Exchange (
+DROP TABLE IF EXISTS Exchange;
+CREATE TABLE Exchange (
 	Nome varchar(255) not null,
 	`Sede Operativa` varchar(255) not null,
 	`Sede Legale` varchar(255) not null,
@@ -69,34 +76,39 @@ create table Exchange (
 	unique (`Sede Legale`),
 	primary key (Nome));
 
-create table Ordine (
+DROP TABLE IF EXISTS Ordine;
+CREATE TABLE Ordine (
 	`Tipo Ordine` ENUM("Vende", "Compra") not null,
 	Quantita int not null CHECK (Quantita > 0),
-	Data date DEFAULT CURRENT_DATE(),
-	Ora time DEFAULT CURRENT_TIME(),
+	Data date not null,
+	Ora time not null,
 	primary key (Data, Ora));
 
-create table Server (
+DROP TABLE IF EXISTS Server;
+CREATE TABLE Server (
 	Host varchar(255) not null,
 	Porta int not null,
 	CONSTRAINT Hosting UNIQUE (Host,Porta));
 
-create table Transazione (
+DROP TABLE IF EXISTS Transazione;
+CREATE TABLE Transazione (
 	Quantita int not null CHECK (Quantita > 0),
-	Ora date DEFAULT CURDATE(),
-	Data time DEFAULT CURTIME(),
-	primary key (, Ora, Data),
-	unique (, Ora, Data));
+	Ora date not null,
+	Data time not null,
+	primary key (Ora, Data),
+	unique (Ora, Data));
 
-create table Transazione_fisica (
+DROP TABLE IF EXISTS Transazione_fisica;
+CREATE TABLE Transazione_fisica (
 	`Cambio attuale` int not null CHECK (`Cambio attuale` > 0),
 	Quantita int not null CHECK (Quantita>0),
 	Spread int not null CHECK (Spread > 0),
-	Data date DEFAULT CURDATE(),
-	Ora time DEFAULT CURTIME(),
+	Data date not null,
+	Ora time not null,
 	primary key (Data, Ora));
 
-create table Utente (
+DROP TABLE IF EXISTS Utente;
+CREATE TABLE Utente (
 	ID int AUTO_INCREMENT,
 	Email varchar(255) not null,
 	Password varchar(255) not null,
