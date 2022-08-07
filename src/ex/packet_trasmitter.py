@@ -85,7 +85,7 @@ class PacketTransmitter:
 
         return Packet.by_json(data), addr
     
-    def get_data(self, timeout_error : str="Timeout reaced", timeout_end="\n", time_out_max=3, type_error_fun=print, to_str : bool=True) -> str | bytes | None:
+    def get_data(self, timeout_error : str="Timeout reaced", timeout_end="\n", time_out_max=3, type_error_fun=print, to_str : bool=True) -> tuple[str | bytes | None, tuple[str, int] | None]:
         '''
         Recive a generic Packet, but it doesn't stop after a timeout,
         it simply print the message. If a data corruption is present
@@ -95,7 +95,7 @@ class PacketTransmitter:
         cnt = 0
         while cnt < time_out_max:
             try:
-                package = self._get_packet()
+                package, addr = self._get_packet()
                 break
             
             except sk.timeout:
@@ -106,17 +106,18 @@ class PacketTransmitter:
                 type_error_fun(e)
 
         if cnt == time_out_max:
-            return None
+            return None, None
 
         if to_str:
-            return str(package)
+            return str(package), addr
         
         else:
-            return bytes.fromhex(package.data)
+            return bytes.fromhex(package.data), addr
     
     def wait_for_command(self) -> dict:
-        data, addr = self._get_packet()
-        d = loads(data.to_json())
+        while data is not None and addr is not None:
+            data, addr = self._get_packet()
+        d = loads(data)
         d.update({"address" : addr})
         return d
 

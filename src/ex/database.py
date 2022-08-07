@@ -65,4 +65,9 @@ if __name__ == "__main__":
     cursor.execute(f"CREATE DATABASE {DatabaseConfig['database_name']}")
     # crea l'utente
     cursor.execute(f"CREATE USER '{DatabaseConfig['username']}'@'{DatabaseConfig['host']}' IDENTIFIED BY '{DatabaseConfig['password']}'")
+    cursor.execute(f"GRANT ALL PRIVILEGES ON `{DatabaseConfig['database_name']}` . * TO '{DatabaseConfig['username']}'@'{DatabaseConfig['host']}'")
+    cursor.execute("FLUSH PRIVILEGES")
+    # crea tabella echanges online
+    cursor.execute(f"USE {DatabaseConfig['database_name']}")
+    cursor.execute("CREATE TABLE running_exchanges (name VARCHAR(255), address VARCHAR(255), port INT)")
     print("Done")
