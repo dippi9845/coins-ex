@@ -125,11 +125,11 @@ class Exchange:
         pass
 
     def __wait_for_command(self) -> dict:
-        data = ''
-        addr = ''
+        data = None
+        addr = None
         
-        while data is not None and addr is not None:
-            data, addr = self.__reciver.get_data()
+        while data is None and addr is None:
+            data, addr = self.__reciver.get_data(timeout_error="", timeout_end="")
         
         d = loads(data)
         d.update({"address" : addr})
@@ -148,9 +148,9 @@ class Exchange:
     
     def close(self, *arguments):
         print("mi cancello dalla lista in esecuzione")
-        self.__database.delete(f"DELETE FROM running_exchanges WHERE host = {self.__address[0]} AND port = {self.__address[1]}")
-        self.__database.close()
+        self.__database.delete(f"DELETE FROM running_exchanges WHERE host = '{self.__address[0]}' AND port = {self.__address[1]}")
         self.__reciver.close()
+        self.__database.close()
         self.__pool.shutdown(wait=True)
 
         
