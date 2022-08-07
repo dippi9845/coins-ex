@@ -129,7 +129,10 @@ class Exchange:
         addr = None
         
         while data is None and addr is None:
-            data, addr = self.__reciver.get_data(timeout_error="", timeout_end="")
+            try:
+                data, addr = self.__reciver.get_data(timeout_error="", timeout_end="")
+            except OSError:
+                pass
         
         d = loads(data)
         d.update({"address" : addr})
@@ -147,11 +150,11 @@ class Exchange:
             self.__pool.submit(d.get(self.COMMAND_SPECIFIER), d)
     
     def close(self, *arguments):
-        print("mi cancello dalla lista in esecuzione")
         self.__database.delete(f"DELETE FROM running_exchanges WHERE host = '{self.__address[0]}' AND port = {self.__address[1]}")
         self.__reciver.close()
         self.__database.close()
         self.__pool.shutdown(wait=True)
+        exit(0)
 
         
 
