@@ -1,7 +1,8 @@
 from enum import Enum
 from concurrent.futures import ThreadPoolExecutor
-from ex.utils.packet_trasmitter import PacketTransmitter
-from ex.utils.database import Database
+from packet_trasmitter import PacketTransmitter
+from database import Database
+import signal
 
 class ExchangeCommands(Enum):
     REGISTER = "register"
@@ -25,6 +26,8 @@ class Exchange:
         self.__reciver = PacketTransmitter(bind=True, bind_addr=address)
         self.__pool = ThreadPoolExecutor(max_workers=processes)
         self.__name = exchange_name
+        self.__address = address
+        signal.signal(signal.SIGINT, self.close)
 
         self.cmds = {
             ExchangeCommands.REGISTER.value : self._register_user,
@@ -125,9 +128,39 @@ class Exchange:
         run the exchange,
         will handle for user connections 
         '''
-        # TODO: script per inserire l'exchange corrente
-        self.__database.insert_into()
+        self.__database.insert_into(f"INSERT INTO running_exchanges VALUES ('{self.__name}', '{self.__address[0]}', {self.__address[1]})")
         
         while True:
             d = self.__reciver.wait_for_command()
             self.__pool.submit(d.get(self.COMMAND_SPECIFIER), d)
+    
+    def close(self, *arguments):
+        self.__database.delete(f"DELETE FROM running_exchanges WHERE host = {self.__address[0]} AND port = {self.__address[1]}")
+        self.__database.close()
+        self.__reciver.close()
+        self.__pool.shutdown(wait=True)
+
+        
+
+if __name__ == "__main__":
+    from sys import argv
+    iter = iter(argv)
+    next(iter)
+    
+    try:
+    
+        name = next(iter)
+        
+        if name == "-h":
+            print("[name: (required)] [port (default 31415)] [host: (deafult localhost)] [workers (for ThreadPool): (deafult 1)]")
+            exit(0)
+
+    except StopIteration:
+        print("you have to provide a name of the exchange")
+        exit(0)
+    
+    port = next(iter, 31415)
+    host = next(iter, "localhost")
+    workers = next(iter, 1)
+    exc = Exchange(name, (host, port), processes=workers)
+    exc.run()
