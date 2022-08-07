@@ -69,5 +69,5 @@ if __name__ == "__main__":
     cursor.execute("FLUSH PRIVILEGES")
     # crea tabella echanges online
     cursor.execute(f"USE {DatabaseConfig['database_name']}")
-    cursor.execute("CREATE TABLE running_exchanges (name VARCHAR(255), address VARCHAR(255), port INT)")
+    cursor.execute("CREATE TABLE running_exchanges (name VARCHAR(255), host VARCHAR(255), port INT)")
     print("Done")
