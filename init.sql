@@ -17,7 +17,7 @@ create database Exchange;
 
 create table ATM (
 	Via varchar(255) not null,
-	Città varchar(255) not null,
+	Citta varchar(255) not null,
 	Provincia varchar(255) not null,
 	`Codice Icentificativo` varchar(255) not null,
 	Modello varchar(255) not null,
@@ -82,7 +82,7 @@ create table Server (
 	CONSTRAINT Hosting UNIQUE (Host,Porta));
 
 create table Transazione (
-	Quantità int not null CHECK (Quantità > 0),
+	Quantita int not null CHECK (Quantita > 0),
 	Ora date DEFAULT CURDATE(),
 	Data time DEFAULT CURTIME(),
 	primary key (, Ora, Data),
@@ -90,7 +90,7 @@ create table Transazione (
 
 create table Transazione_fisica (
 	`Cambio attuale` int not null CHECK (`Cambio attuale` > 0),
-	Quantità int not null CHECK (Quantità>0),
+	Quantita int not null CHECK (Quantita>0),
 	Spread int not null CHECK (Spread > 0),
 	Data date DEFAULT CURDATE(),
 	Ora time DEFAULT CURTIME(),
@@ -102,7 +102,7 @@ create table Utente (
 	Password varchar(255) not null,
 	Nome varchar(255) not null,
 	Cognome varchar(255) not null,
-	Nazionalità varchar(255) not null,
+	Nazionalita varchar(255) not null,
 	Residenza varchar(255) not null,
 	`Numero Di Telefono` varchar(255) not null,
 	`Data di nascita` date not null,
