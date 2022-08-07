@@ -24,13 +24,10 @@ class ExchangeCommands(Enum):
 class ExchangeServer(Thread):
 
     def __init__(self, exchange_name : str, address : tuple[str, int]=("localhost", 31415), processes : int=1) -> None:
-        self.__database = Database()
-        self.__reciver = PacketTransmitter(bind=True, bind_addr=address)
-        self.__pool = ThreadPoolExecutor(max_workers=processes)
         self.__name = exchange_name
         self.__to_run = True
         self.__address = address
-        signal.signal(signal.SIGINT, self.close)
+        self.__processes = processes
 
         self.cmds = {
             ExchangeCommands.REGISTER.value : self._register_user,
@@ -44,6 +41,9 @@ class ExchangeServer(Thread):
             ExchangeCommands.FIAT_DEPOSIT.value : self._create_account_fiat, 
             ExchangeCommands.ACCOUNT_REPORT.value : self._get_report
         }
+    
+    def set_address(self, addr : tuple[str, int]):
+        self.__address = addr
 
     def __make_transaction(self):
         '''
@@ -162,6 +162,10 @@ class ExchangeServer(Thread):
         run the exchange,
         will handle for user connections 
         '''
+        self.__database = Database()
+        self.__reciver = PacketTransmitter(bind=True, bind_addr=self.__address)
+        self.__pool = ThreadPoolExecutor(max_workers=self.__processes)
+        
         self.__database.insert_into(f"INSERT INTO running_exchanges VALUES ('{self.__name}', '{self.__address[0]}', {self.__address[1]})")
         
         while self.__to_run:
@@ -191,11 +195,13 @@ if __name__ == "__main__":
         name = next(iter)
         
         if name == "-h":
-            print("[name: (required)] [port (default 31415)] [host: (deafult localhost)] [workers (for ThreadPool): (deafult 1)]")
+            print("[name: (required)]")
             exit(0)
 
     except StopIteration:
         print("you have to provide a name of the exchange")
         exit(0)
+    
+
     
     
