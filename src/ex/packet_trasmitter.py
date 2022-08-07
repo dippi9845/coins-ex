@@ -115,6 +115,8 @@ class PacketTransmitter:
             return bytes.fromhex(package.data), addr
     
     def wait_for_command(self) -> dict:
+        data = ''
+        addr = ''
         while data is not None and addr is not None:
             data, addr = self._get_packet()
         d = loads(data)
