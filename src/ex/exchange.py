@@ -62,14 +62,15 @@ class Exchange:
         # aggiungi utente al database
         # crea un conto in euro
         print("register requested", dumps(d))
+        self._get_cookie({"email" : d.get("email"), "password" : d.get("password"), "address": d.get("address")})
         pass
     
     def _get_cookie(self, d : dict) -> str:
         '''
         return the cookie to the client
         '''
-        # TODO: maneggiare una risposta indietro
         print("cookie requested", dumps(d))
+        self.__reciver.send_data("11111", d.get("address"))
         pass
 
     def _get_report(self, d : dict):
