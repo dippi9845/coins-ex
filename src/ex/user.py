@@ -1,6 +1,6 @@
 from view import View, TerminalView
-from utils.packet_trasmitter import PacketTransmitter
-from utils.database import Database
+from packet_trasmitter import PacketTransmitter
+from database import Database
 
 class User:
 
