@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from packet_trasmitter import PacketTransmitter
 from database import Database
 import signal
-from json import loads
+from json import loads, dumps
 
 class ExchangeCommands(Enum):
     REGISTER = "register"
@@ -16,11 +16,10 @@ class ExchangeCommands(Enum):
     CREATE_WALLET = "create_wallet"
     FIAT_DEPOSIT = "fiat_deposit"
     ACCOUNT_REPORT = "report"
+    COMMAND_SPECIFIER = "cmd"
 
 
 class Exchange:
-
-    COMMAND_SPECIFIER = "cmd"
 
     def __init__(self, exchange_name : str, address : tuple[str, int], processes : int=1) -> None:
         self.__database = Database()
@@ -62,66 +61,76 @@ class Exchange:
         # name : str, surname : str, email : str, password : str, fiscal_code : str, nationality : str, telephone : str
         # aggiungi utente al database
         # crea un conto in euro
+        print("register requested", dumps(d))
         pass
     
-    def _get_cookie(self, email : str, passw : str) -> str:
+    def _get_cookie(self, d : dict) -> str:
         '''
         return the cookie to the client
         '''
         # TODO: maneggiare una risposta indietro
+        print("cookie requested", dumps(d))
         pass
 
-    def _get_report(self, user : str):
+    def _get_report(self, d : dict):
         '''
         returns the report of the user
         '''
         # restituisci il saldo di tutti conti correnti
+        print("get report requested", dumps(d))
         pass
 
     def _withdraw(self, d : dict):
         '''
         withdraw fiat money 
         '''
+        print("withdraw requested", dumps(d))
         pass
 
-    def _deposit(self):
+    def _deposit(self, d : dict):
         '''
         deposit fiat money
         '''
+        print("deposit requested", dumps(d))
         pass
 
-    def _send(self):
+    def _send(self, d : dict):
         '''
         send money to another user
         '''
+        print("send requested", dumps(d))
         pass
 
-    def _sell(self):
+    def _sell(self, d : dict):
         '''
         sell a crypto
         '''
         # controlla che non ci siano ordini di compra vicini nel database, usa quelli
         # altrimetti piazzane uno
+        print("sell requested", dumps(d))
         pass
 
-    def _buy(self):
+    def _buy(self, d : dict):
         '''
         buy a crypto
         '''
         # controlla che non ci siano ordini di vendita vicini nel database, usa quelli
         # altrimetti piazzane uno
+        print("buy requested", dumps(d))
         pass
 
-    def _create_wallet(self) -> str:
+    def _create_wallet(self, d : dict) -> str:
         '''
         create a wallet
         '''
+        print("wallet creation requested", dumps(d))
         pass
 
-    def _create_account_fiat(self) -> str:
+    def _create_account_fiat(self, d : dict) -> str:
         '''
         create an account that contais only fiat money
         '''
+        print("fiat account requested", dumps(d))
         pass
 
     def __wait_for_command(self) -> dict:
@@ -147,7 +156,7 @@ class Exchange:
         
         while True:
             d = self.__wait_for_command()
-            self.__pool.submit(d.get(self.COMMAND_SPECIFIER), d)
+            self.__pool.submit(self.cmds.get(d.get(ExchangeCommands.COMMAND_SPECIFIER.value)), d)
     
     def close(self, *arguments):
         self.__database.delete(f"DELETE FROM running_exchanges WHERE host = '{self.__address[0]}' AND port = {self.__address[1]}")
