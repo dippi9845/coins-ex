@@ -3,7 +3,7 @@ from enum import Enum
 from concurrent.futures import ThreadPoolExecutor
 from packet_trasmitter import PacketTransmitter
 from database import Database
-import signal
+from threading import Thread
 from json import loads, dumps
 
 class ExchangeCommands(Enum):
@@ -20,7 +20,7 @@ class ExchangeCommands(Enum):
     COMMAND_SPECIFIER = "cmd"
 
 
-class ExchangeServer:
+class ExchangeServer(Thread):
 
     def __init__(self, exchange_name : str, address : tuple[str, int]=("localhost", 31415), processes : int=1) -> None:
         self.__name = exchange_name
@@ -176,9 +176,6 @@ class ExchangeServer:
     def stop(self):
         self.__to_run = False
     
-
-
-        
 
 if __name__ == "__main__":
     from sys import argv
