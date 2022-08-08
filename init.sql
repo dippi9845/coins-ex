@@ -123,6 +123,11 @@ CREATE TABLE registrati (
 	ID INT NOT NULL,
 	Nome VARCHAR(255) NOT NULL);
 
+DROP TABLE IF EXISTS creato;
+CREATE TABLE creato (
+	Indirizzo VARCHAR(255) NOT NULL,
+	Nome VARCHAR(255) NOT NULL);
+
 -- Instances needed section
 INSERT INTO fiat (Nome, Ticker)
 VALUES
