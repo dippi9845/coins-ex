@@ -31,6 +31,7 @@ CREATE TABLE ContoCorrente (
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo VARCHAR(255) NOT NULL,
 	Nome VARCHAR(255) NOT NULL,
+	Ticker VARCHAR(255) NOT NULL,
 	PRIMARY KEY (Indirizzo)
 );
 
@@ -39,6 +40,7 @@ CREATE TABLE Wallet (
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo VARCHAR(255) NOT NULL,
 	Nome VARCHAR(255) NOT NULL,
+	Ticker VARCHAR(255) NOT NULL,
 	PRIMARY KEY (Indirizzo)
 );
 
