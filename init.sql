@@ -124,6 +124,11 @@ CREATE TABLE Utente (
 	UNIQUE (`Codice Fiscale`)
 	UNIQUE (Cookie));
 
+DROP TABLE IF EXISTS registrati;
+CREATE TABLE registrati (
+	ID INT NOT NULL,
+	Nome VARCHAR(255) NOT NULL);
+
 -- ConstraINTs Section
 -- ___________________
 
