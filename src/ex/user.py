@@ -52,7 +52,7 @@ class User:
         '''
         list all currrent databases
         '''
-        # QUERY
+        # QUERY get all existing exchanges
         rtr = self.__database.select("SELECT Nome FROM exchange")
         rtr = list(map(lambda x: x[0], rtr))
         return rtr
