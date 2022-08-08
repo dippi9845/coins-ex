@@ -1,9 +1,7 @@
 from view import View, TerminalView
-from packet_trasmitter import PacketTransmitter
 from database import Database
 from functools import reduce
 from  json import dumps
-from exchange_server import ExchangeCommands
 
 class User:
 
@@ -24,68 +22,44 @@ class User:
             "exit" : self.exit
         }
         
-        self.__exchange_addr = None
         self.__exchange_name = None
         self.__access_info = None
-        self.__sender = PacketTransmitter()
         self.__database = Database()
-    
-    def __send_to_exchange(self, cmd_data : dict):
-        self.__sender.send_data(dumps(cmd_data), self.__exchange_addr)
 
     def _register(self):
-        to_send = {
-            ExchangeCommands.COMMAND_SPECIFIER.value : ExchangeCommands.REGISTER.value,
-            "name" : self.__view.ask_input("Insert Name -> "),
-            "surname" : self.__view.ask_input("Insert Surname -> "),
-            "email" : self.__view.ask_input("Insert Emai -> "),
-            "password" : self.__view.ask_input("Insert Password -> "),
-            "fiscal_code" : self.__view.ask_input("Insert Fiscal Code -> "),
-            "nationality" : self.__view.ask_input("Insert Natinality -> "),
-            "telephone" : self.__view.ask_input("Insert Telephone -> ")
-
-        }
-
-        self.__send_to_exchange(to_send)
-        self.__access_info, _ = self.__sender.get_data()
-
-        if self.__access_info is None:
-            return False
         
-        else:
-            return True
+        name = self.__view.ask_input("Insert Name -> ")
+        surname = self.__view.ask_input("Insert Surname -> ")
+        email = self.__view.ask_input("Insert Emai -> ")
+        password = self.__view.ask_input("Insert Password -> ")
+        fiscal_code = self.__view.ask_input("Insert Fiscal Code -> ")
+        nationality = self.__view.ask_input("Insert Natinality -> ")
+        telephone = self.__view.ask_input("Insert Telephone -> ")
 
-    def _set_exchange(self, name : str, addr : tuple[str, int]):
-        self.__exchange_addr = addr
+        # inserire una istanza utente
+        # inserire una istanza registrati
+
+    def _set_exchange(self, name : str):
         self.__exchange_name = name
 
-    def _current_exchanges(self) -> dict:
+    def _current_exchanges(self) -> list[str]:
         '''
         list all currrent databases
         '''
-        rtr = self.__database.select("SELECT name, host, port FROM server")
-        rtr = list(map(lambda x: {x[0] : (x[1], x[2])}, rtr))
-        rtr = reduce(lambda a, b: {**a, **b}, rtr)
+        # QUERY
+        rtr = self.__database.select("SELECT Nome FROM exchange")
+        rtr = list(map(lambda x: x[0], rtr))
         return rtr
 
     def _access(self) -> bool:
         '''
         Asks only the credentials
         '''
-        to_send = {
-            ExchangeCommands.COMMAND_SPECIFIER.value : ExchangeCommands.GET_COOKIE.value,
-            "email" : self.__view.ask_input("insert email -> "),
-            "password" : self.__view.ask_input("insert password -> ")
-        }
         
-        self.__send_to_exchange(to_send)
-        self.__access_info, _ = self.__sender.get_data()
-
-        if self.__access_info is None:
-            return False
+        email = self.__view.ask_input("insert email -> ")
+        password = self.__view.ask_input("insert password -> ")
         
-        else:
-            return True
+        # ottenere l'id dell'utente
 
     def _report(self):
         '''
@@ -123,7 +97,7 @@ class User:
         '''
         while True:
             excs = self._current_exchanges()
-            possibles = set(excs.keys())
+            possibles = set(excs)
             possibles.update({"", "update"})
 
             ch = self.__view.menu("Choose avaiable exchanges", possibles)
@@ -134,7 +108,7 @@ class User:
             elif ch == "update":
                 continue
 
-            self._set_exchange(ch, excs.get(ch))
+            self._set_exchange(ch)
 
             ch = self.__view.menu(f"Do you want to register or access to {self.__exchange_name}", ["register", "access"])
             
