@@ -90,6 +90,7 @@ class User:
             return False
 
         user_id = resp[0]
+        self.__access_info = user_id
         # QUERY get registerd exchnges
         resp = self.__database.select(f"SELCECT Nome FROM registrati WHERE ID = {user_id}")
         self.__registered_exchanges = list(map(lambda x: x[0], resp))
