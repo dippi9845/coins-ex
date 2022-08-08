@@ -40,7 +40,12 @@ class User:
         residence = self.__view.ask_input("Insert Residence -> ")
         bith_day = self.__view.ask_input("Insert Bith Day -> ")
 
-        # inserire una istanza utente
+        # QUERY insert utente instance
+        self.__database.insert_into(f'''
+        INSERT INTO utente
+        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES({name}, {surname}, {email}, {password}, {fiscal_code}, {nationality}, {telephone}, {residence}, {bith_day})
+        ''')
     
     def _register(self):
         pass
