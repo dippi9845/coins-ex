@@ -84,12 +84,6 @@ CREATE TABLE Ordine (
 	Ora time NOT NULL,
 	PRIMARY KEY (Data, Ora));
 
-DROP TABLE IF EXISTS Server;
-CREATE TABLE Server (
-	Host VARCHAR(255) NOT NULL,
-	Porta INT NOT NULL,
-	CONSTRAINT Hosting UNIQUE (Host,Porta));
-
 DROP TABLE IF EXISTS Transazione;
 CREATE TABLE Transazione (
 	Quantita INT NOT NULL CHECK (Quantita > 0),
@@ -119,10 +113,8 @@ CREATE TABLE Utente (
 	`Numero Di Telefono` VARCHAR(255) NOT NULL,
 	`Data di nascita` date NOT NULL,
 	`Codice Fiscale` VARCHAR(255) NOT NULL,
-	Cookie VARCHAR(255) NOT NULL,
 	PRIMARY KEY (ID),
-	UNIQUE (`Codice Fiscale`)
-	UNIQUE (Cookie));
+	UNIQUE (`Codice Fiscale`));
 
 DROP TABLE IF EXISTS registrati;
 CREATE TABLE registrati (
