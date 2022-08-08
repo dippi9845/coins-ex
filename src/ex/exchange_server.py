@@ -56,6 +56,15 @@ class ExchangeServer(Thread):
         '''
         pass
 
+    def __check_cookie(self, cookie : str) -> bool | str:
+        rtr = self.__database.select(f"SELECT ID FROM utente WHERE Cookie = '{cookie}'")
+        
+        if len(rtr) == 0:
+            return False
+        
+        else:
+            return rtr[0]
+
     def _register_user(self, d : dict) -> bool:
         '''
         register an new user
