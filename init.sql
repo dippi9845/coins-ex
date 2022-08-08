@@ -119,8 +119,10 @@ CREATE TABLE Utente (
 	`Numero Di Telefono` VARCHAR(255) NOT NULL,
 	`Data di nascita` date NOT NULL,
 	`Codice Fiscale` VARCHAR(255) NOT NULL,
+	Cookie VARCHAR(255) NOT NULL,
 	PRIMARY KEY (ID),
-	UNIQUE (`Codice Fiscale`));
+	UNIQUE (`Codice Fiscale`)
+	UNIQUE (Cookie));
 
 -- ConstraINTs Section
 -- ___________________
