@@ -1,4 +1,5 @@
 from operator import le
+from socket import AI_PASSIVE
 from view import View, TerminalView
 from database import Database
 from functools import reduce
@@ -62,6 +63,7 @@ class User:
         if self.__access_info is not None:
             # QUERY register to that exchange
             self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{excahnge_name}')")
+            self._create_fiat_account()
 
     def _set_exchange(self, name : str):
         self.__exchange_name = name
@@ -96,6 +98,11 @@ class User:
         self.__registered_exchanges = list(map(lambda x: x[0], resp))
         return True
 
+    def _create_wallet(self):
+        pass
+
+    def _create_fiat_account(self, fiat_ticker : str="EUR", amount : int=1000):
+        pass
 
     def _report(self):
         '''
