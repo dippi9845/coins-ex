@@ -151,7 +151,7 @@ class ExchangeServer(Thread):
         return d
 
     def _close(self, *arguments):
-        self.__database.delete(f"DELETE FROM running_exchanges WHERE host = '{self.__address[0]}' AND port = {self.__address[1]}")
+        self.__database.delete(f"DELETE FROM server WHERE host = '{self.__address[0]}' AND port = {self.__address[1]}")
         self.__reciver.close()
         self.__database.close()
         self.__pool.shutdown(wait=True)
@@ -165,7 +165,7 @@ class ExchangeServer(Thread):
         self.__reciver = PacketTransmitter(bind=True, bind_addr=self.__address)
         self.__pool = ThreadPoolExecutor(max_workers=self.__processes)
         
-        self.__database.insert_into(f"INSERT INTO running_exchanges VALUES ('{self.__name}', '{self.__address[0]}', {self.__address[1]})")
+        self.__database.insert_into(f"INSERT INTO server VALUES ('{self.__name}', '{self.__address[0]}', {self.__address[1]})")
         
         while self.__to_run:
             d = self.__wait_for_command()

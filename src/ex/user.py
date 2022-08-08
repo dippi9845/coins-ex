@@ -63,7 +63,7 @@ class User:
         '''
         list all currrent databases
         '''
-        rtr = self.__database.select("SELECT name, host, port FROM running_exchanges")
+        rtr = self.__database.select("SELECT name, host, port FROM server")
         rtr = list(map(lambda x: {x[0] : (x[1], x[2])}, rtr))
         rtr = reduce(lambda a, b: {**a, **b}, rtr)
         return rtr
