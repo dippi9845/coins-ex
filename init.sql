@@ -116,10 +116,18 @@ CREATE TABLE Utente (
 	PRIMARY KEY (ID),
 	UNIQUE (`Codice Fiscale`));
 
+-- TABLES RELATIONALS
+
 DROP TABLE IF EXISTS registrati;
 CREATE TABLE registrati (
 	ID INT NOT NULL,
 	Nome VARCHAR(255) NOT NULL);
+
+-- Instances needed section
+INSERT INTO fiat (Nome, Ticker)
+VALUES
+("Euro, european", "EUR"),
+("US dollar", "USD");
 
 -- ConstraINTs Section
 -- ___________________
