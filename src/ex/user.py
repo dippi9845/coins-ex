@@ -183,9 +183,7 @@ class User:
         exit from the current exchange
         '''
         self.__access_info = None
-        self.__exchange_addr = None
-        self.__access_info = None
-        self.__sender = None
+        self.__database.close()
 
 if __name__ == "__main__":
     user = User(TerminalView())
