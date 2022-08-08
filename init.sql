@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS ContoCorrente;
 CREATE TABLE ContoCorrente (
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo VARCHAR(255) NOT NULL,
+	Nome VARCHAR(255) NOT NULL,
 	PRIMARY KEY (Indirizzo)
 );
 
@@ -37,6 +38,7 @@ DROP TABLE IF EXISTS Wallet;
 CREATE TABLE Wallet (
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo VARCHAR(255) NOT NULL,
+	Nome VARCHAR(255) NOT NULL,
 	PRIMARY KEY (Indirizzo)
 );
 
@@ -121,11 +123,6 @@ CREATE TABLE Utente (
 DROP TABLE IF EXISTS registrati;
 CREATE TABLE registrati (
 	ID INT NOT NULL,
-	Nome VARCHAR(255) NOT NULL);
-
-DROP TABLE IF EXISTS creato;
-CREATE TABLE creato (
-	Indirizzo VARCHAR(255) NOT NULL,
 	Nome VARCHAR(255) NOT NULL);
 
 -- Instances needed section
