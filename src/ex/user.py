@@ -3,7 +3,7 @@ from packet_trasmitter import PacketTransmitter
 from database import Database
 from functools import reduce
 from  json import dumps
-from exchange import ExchangeCommands
+from exchange_server import ExchangeCommands
 
 class User:
 
