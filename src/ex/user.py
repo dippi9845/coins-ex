@@ -1,3 +1,4 @@
+from operator import le
 from view import View, TerminalView
 from database import Database
 from functools import reduce
@@ -24,6 +25,7 @@ class User:
         
         self.__exchange_name = None
         self.__access_info = None
+        self.__registered_exchanges = []
         self.__database = Database()
 
     def _register(self):
@@ -59,7 +61,18 @@ class User:
         email = self.__view.ask_input("insert email -> ")
         password = self.__view.ask_input("insert password -> ")
         
-        # ottenere l'id dell'utente
+        # QUERY get id
+        resp = self.__database.select(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")
+        
+        if len(resp) == 0:
+            return False
+
+        id = resp[0]
+        # QUERY get registerd exchnges
+        resp = self.__database.select(f"SELCECT Nome FROM registrati WHERE ID = {id}")
+        self.__registered_exchanges = list(map(lambda x: x[0], resp))
+        return True
+
 
     def _report(self):
         '''
