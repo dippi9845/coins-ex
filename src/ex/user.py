@@ -28,7 +28,7 @@ class User:
         self.__registered_exchanges = []
         self.__database = Database()
 
-    def _register(self):
+    def _first_access(self):
         
         name = self.__view.ask_input("Insert Name -> ")
         surname = self.__view.ask_input("Insert Surname -> ")
@@ -37,9 +37,13 @@ class User:
         fiscal_code = self.__view.ask_input("Insert Fiscal Code -> ")
         nationality = self.__view.ask_input("Insert Natinality -> ")
         telephone = self.__view.ask_input("Insert Telephone -> ")
+        residence = self.__view.ask_input("Insert Residence -> ")
+        bith_day = self.__view.ask_input("Insert Bith Day -> ")
 
         # inserire una istanza utente
-        # inserire una istanza registrati
+    
+    def _register(self):
+        pass
 
     def _set_exchange(self, name : str):
         self.__exchange_name = name
