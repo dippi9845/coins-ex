@@ -19,7 +19,7 @@ class ExchangeCommands(Enum):
     COMMAND_SPECIFIER = "cmd"
 
 
-class ExchangeServer:
+class Exchange:
 
     def __init__(self, exchange_name : str, address : tuple[str, int], processes : int=1) -> None:
         self.__database = Database()
@@ -166,7 +166,6 @@ class ExchangeServer:
         self.__pool.shutdown(wait=True)
         exit(0)
 
-
         
 
 if __name__ == "__main__":
@@ -189,5 +188,5 @@ if __name__ == "__main__":
     port = next(iter, 31415)
     host = next(iter, "localhost")
     workers = next(iter, 1)
-    exc = ExchangeServer(name, (host, port), processes=workers)
+    exc = Exchange(name, (host, port), processes=workers)
     exc.run()
