@@ -63,6 +63,7 @@ class User:
             # QUERY register to that exchange
             self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{exchange_name}')")
             self._create_fiat_account(exchange_name)
+            self.__registered_exchanges.append(exchange_name)
 
     def _set_exchange(self, name : str):
         self.__exchange_name = name
