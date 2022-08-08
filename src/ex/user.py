@@ -40,15 +40,28 @@ class User:
         residence = self.__view.ask_input("Insert Residence -> ")
         bith_day = self.__view.ask_input("Insert Bith Day -> ")
 
+        to_register = self.__view.menu("Choose the first exchange", self._current_exchanges())
+
         # QUERY insert utente instance
         self.__database.insert_into(f'''
         INSERT INTO utente
         (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
         VALUES({name}, {surname}, {email}, {password}, {fiscal_code}, {nationality}, {telephone}, {residence}, {bith_day})
         ''')
-    
-    def _register(self):
-        pass
+
+        # QUERY get ID of least insered user
+        resp = self.__database.insert_into(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")
+        self.__access_info = resp[0]
+
+        self._register(to_register)
+        
+    def _register(self, excahnge_name : str):
+        '''
+        register the user to the exchange provided as paramenter
+        '''
+        if self.__access_info is not None:
+            # QUERY register to that exchange
+            self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{excahnge_name}')")
 
     def _set_exchange(self, name : str):
         self.__exchange_name = name
@@ -76,9 +89,9 @@ class User:
         if len(resp) == 0:
             return False
 
-        id = resp[0]
+        user_id = resp[0]
         # QUERY get registerd exchnges
-        resp = self.__database.select(f"SELCECT Nome FROM registrati WHERE ID = {id}")
+        resp = self.__database.select(f"SELCECT Nome FROM registrati WHERE ID = {user_id}")
         self.__registered_exchanges = list(map(lambda x: x[0], resp))
         return True
 
