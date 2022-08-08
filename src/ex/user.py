@@ -1,9 +1,8 @@
-from operator import le
-from socket import AI_PASSIVE
 from view import View, TerminalView
 from database import Database
-from functools import reduce
-from  json import dumps
+from hashlib import sha256
+from time import time
+from random import randbytes
 
 class User:
 
@@ -98,11 +97,19 @@ class User:
         self.__registered_exchanges = list(map(lambda x: x[0], resp))
         return True
 
-    def _create_wallet(self):
+    def _create_wallet(self, crypto_ticker : str):
         pass
 
-    def _create_fiat_account(self, fiat_ticker : str="EUR", amount : int=1000):
-        pass
+    def _create_fiat_account(self, exchange_name :str, fiat_ticker : str="EUR", amount : int=1000):
+        if self.__access_info is not None:
+            to_hash = str(self.__access_info).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)
+            # QUERY create an istance of contocorrente
+            
+            self.__database.insert_into(f'''
+                INSERT INTO contocorrente (Indirizzo, Saldo, Nome, Ticker)
+                VALUES ("{sha256(to_hash).hexdigest()}", {amount}, "{exchange_name}", "{fiat_ticker}")
+            ''')
+            
 
     def _report(self):
         '''
