@@ -5,7 +5,6 @@ from packet_trasmitter import PacketTransmitter
 from database import Database
 import signal
 from json import loads, dumps
-from threading import Thread
 
 class ExchangeCommands(Enum):
     REGISTER = "register"
@@ -21,7 +20,7 @@ class ExchangeCommands(Enum):
     COMMAND_SPECIFIER = "cmd"
 
 
-class ExchangeServer(Thread):
+class Exchange:
 
     def __init__(self, exchange_name : str, address : tuple[str, int]=("localhost", 31415), processes : int=1) -> None:
         self.__name = exchange_name
@@ -178,11 +177,6 @@ class ExchangeServer(Thread):
         self.__to_run = False
     
 
-
-class Exchange:
-    def __init__(self, name : str) -> None:
-        self.__database = Database()
-        self.__server = ExchangeServer(name)
         
 
 if __name__ == "__main__":
@@ -202,6 +196,8 @@ if __name__ == "__main__":
         print("you have to provide a name of the exchange")
         exit(0)
     
-
-    
-    
+    port = next(iter, 31415)
+    host = next(iter, "localhost")
+    workers = next(iter, 1)
+    exc = Exchange(name, (host, port), processes=workers)
+    exc.run()
