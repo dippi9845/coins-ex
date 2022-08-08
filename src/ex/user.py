@@ -56,14 +56,14 @@ class User:
 
         self._register(to_register)
         
-    def _register(self, excahnge_name : str):
+    def _register(self, exchange_name : str):
         '''
         register the user to the exchange provided as paramenter
         '''
         if self.__access_info is not None:
             # QUERY register to that exchange
-            self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{excahnge_name}')")
-            self._create_fiat_account()
+            self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{exchange_name}')")
+            self._create_fiat_account(exchange_name)
 
     def _set_exchange(self, name : str):
         self.__exchange_name = name
