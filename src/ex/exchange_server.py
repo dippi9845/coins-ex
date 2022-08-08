@@ -57,6 +57,7 @@ class ExchangeServer(Thread):
         pass
 
     def __check_cookie(self, cookie : str) -> bool | str:
+        # QUERY:
         rtr = self.__database.select(f"SELECT ID FROM utente WHERE Cookie = '{cookie}'")
         
         if len(rtr) == 0:
@@ -76,13 +77,15 @@ class ExchangeServer(Thread):
         self._get_cookie({"email" : d.get("email"), "password" : d.get("password"), "address": d.get("address")})
         pass
     
-    def _get_cookie(self, d : dict) -> str:
+    def _get_cookie(self, d : dict) -> None:
         '''
-        return the cookie to the client
+        send back the cookie to the client
         '''
-        print("cookie requested", dumps(d))
-        self.__reciver.send_data("11111", d.get("address"))
-        pass
+        email = d.get("email")
+        password = d.get("password")
+        # QUERY
+        cookie = self.__database.select(f"SELECT Cookie FROM utente WHERE Email = {email} AND Password = {password}")
+        self.__reciver.send_data(cookie[0], d.get("address"))
 
     def _get_report(self, d : dict):
         '''
