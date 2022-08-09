@@ -4,6 +4,8 @@ from hashlib import sha256
 from time import time
 from random import randbytes
 from enum import Enum
+from datetime import datetime
+
 
 class OptionType(Enum):
     BUY = "Compra",
@@ -34,8 +36,13 @@ class User:
         self.__database = Database()
 
     def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int):
+        date = datetime.now()
         # QUERY create a transaction
-        self.__database.insert_into(f'''INSERT INTO transazione () VALUES() ''')
+        self.__database.insert_into(f'''
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Ora, Data)
+            VALUES
+            ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date}')
+        ''')
 
     def _first_access(self):
         
