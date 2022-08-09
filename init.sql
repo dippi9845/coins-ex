@@ -87,6 +87,8 @@ CREATE TABLE Ordine (
 	`Ticker vendo` VARCHAR(255) NOT NULL,
 	`Quantita compro` INT NOT NULL CHECK(`Quantita compro` > 0),
 	`Quantita vendo` INT NOT NULL CHECK(`Quantita vendo` > 0),
+	`Indirizzo compro` VARCHAR(255) NOT NULL,
+	`Indirizzo vendo` VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Data DATE NOT NULL,
 	Ora TIME NOT NULL);
