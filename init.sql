@@ -82,6 +82,7 @@ CREATE TABLE Exchange (
 
 DROP TABLE IF EXISTS Ordine;
 CREATE TABLE Ordine (
+	OrdineID INT AUTO_INCREMENT,
 	UserID INT NOT NULL,
 	`Ticker compro` VARCHAR(255) NOT NULL,
 	`Ticker vendo` VARCHAR(255) NOT NULL,
@@ -89,9 +90,9 @@ CREATE TABLE Ordine (
 	`Quantita vendo` INT NOT NULL CHECK(`Quantita vendo` > 0),
 	`Indirizzo compro` VARCHAR(255) NOT NULL,
 	`Indirizzo vendo` VARCHAR(255) NOT NULL,
-	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Data DATE NOT NULL,
-	Ora TIME NOT NULL);
+	Ora TIME NOT NULL,
+	PRIMARY KEY (OrdineID));
 
 DROP TABLE IF EXISTS Transazione;
 CREATE TABLE Transazione (
