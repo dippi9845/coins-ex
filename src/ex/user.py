@@ -3,6 +3,11 @@ from database import Database
 from hashlib import sha256
 from time import time
 from random import randbytes
+from enum import Enum
+
+class OptionType(Enum):
+    BUY = "Compra",
+    SELL = "Vendi"
 
 class User:
 
@@ -27,6 +32,10 @@ class User:
         self.__access_info = None
         self.__registered_exchanges = []
         self.__database = Database()
+
+    def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int):
+        # QUERY create a transaction
+        self.__database.insert_into(f'''INSERT INTO transazione () VALUES() ''')
 
     def _first_access(self):
         
