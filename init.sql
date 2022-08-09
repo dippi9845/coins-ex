@@ -90,7 +90,8 @@ CREATE TABLE Ordine (
 
 DROP TABLE IF EXISTS Transazione;
 CREATE TABLE Transazione (
-	Indirizzo VARCHAR(255) NOT NULL,
+	`Indirizzo Entrata` VARCHAR(255) NOT NULL,
+	`Indirizzo Uscita` VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Ora date NOT NULL,
