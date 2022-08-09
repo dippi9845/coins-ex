@@ -82,7 +82,7 @@ CREATE TABLE Exchange (
 
 DROP TABLE IF EXISTS Ordine;
 CREATE TABLE Ordine (
-	`Tipo Ordine` ENUM("Vende", "Compra") NOT NULL,
+	`Tipo Ordine` ENUM("Vendi", "Compra") NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Data date NOT NULL,
 	Ora time NOT NULL,
@@ -90,6 +90,8 @@ CREATE TABLE Ordine (
 
 DROP TABLE IF EXISTS Transazione;
 CREATE TABLE Transazione (
+	Indirizzo VARCHAR(255) NOT NULL,
+	Ticker VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Ora date NOT NULL,
 	Data time NOT NULL,
