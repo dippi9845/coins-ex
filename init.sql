@@ -97,7 +97,6 @@ CREATE TABLE Transazione (
 	Ora date NOT NULL,
 	Data time NOT NULL,
 	PRIMARY KEY (Ora, Data),
-	UNIQUE (Ora, Data));
 
 DROP TABLE IF EXISTS Transazione_fisica;
 CREATE TABLE Transazione_fisica (
