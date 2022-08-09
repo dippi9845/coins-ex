@@ -82,11 +82,14 @@ CREATE TABLE Exchange (
 
 DROP TABLE IF EXISTS Ordine;
 CREATE TABLE Ordine (
-	`Tipo Ordine` ENUM("Vendi", "Compra") NOT NULL,
+	UserID INT NOT NULL,
+	`Ticker compro` VARCHAR(255) NOT NULL,
+	`Ticker vendo` VARCHAR(255) NOT NULL,
+	`Quantita compro` INT NOT NULL CHECK(`Quantita compro` > 0),
+	`Quantita vendo` INT NOT NULL CHECK(`Quantita vendo` > 0),
 	Quantita INT NOT NULL CHECK (Quantita > 0),
-	Data date NOT NULL,
-	Ora time NOT NULL,
-	PRIMARY KEY (Data, Ora));
+	Data DATE NOT NULL,
+	Ora TIME NOT NULL);
 
 DROP TABLE IF EXISTS Transazione;
 CREATE TABLE Transazione (
@@ -94,8 +97,8 @@ CREATE TABLE Transazione (
 	`Indirizzo Uscita` VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
-	Ora date NOT NULL,
-	Data time NOT NULL,
+	Ora DATE NOT NULL,
+	Data TIME NOT NULL,
 	PRIMARY KEY (Ora, Data),
 
 DROP TABLE IF EXISTS Transazione_fisica;
@@ -103,8 +106,8 @@ CREATE TABLE Transazione_fisica (
 	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
 	Quantita INT NOT NULL CHECK (Quantita>0),
 	Spread INT NOT NULL CHECK (Spread > 0),
-	Data date NOT NULL,
-	Ora time NOT NULL,
+	Data DATE NOT NULL,
+	Ora TIME NOT NULL,
 	PRIMARY KEY (Data, Ora));
 
 DROP TABLE IF EXISTS Utente;
@@ -117,7 +120,7 @@ CREATE TABLE Utente (
 	Nazionalita VARCHAR(255) NOT NULL,
 	Residenza VARCHAR(255) NOT NULL,
 	`Numero Di Telefono` VARCHAR(255) NOT NULL,
-	`Data di nascita` date NOT NULL,
+	`Data di nascita` DATE NOT NULL,
 	`Codice Fiscale` VARCHAR(255) NOT NULL,
 	PRIMARY KEY (ID),
 	UNIQUE (`Codice Fiscale`));
