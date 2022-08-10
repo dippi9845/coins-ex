@@ -155,17 +155,20 @@ class User:
         # '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date}'
         # QUERY get all order of buy for this crypto and the amount in the other currency
         buys = self.__database.select(f'''
-        SELECT OrdineID, `Quantita compro`
-        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy} AND `Quantita compro` BETWEEN {amount_buy * (1-tollerance)} AND {amount_buy * (1+tollerance)}
+        SELECT OrdineID, `Quantita compro` FROM Ordine
+        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy} AND
+        `Quantita compro` BETWEEN {amount_buy * (1-tollerance)} AND {amount_buy * (1+tollerance)}
         ''')
 
         if len(buys) > 0:
             buys = list(buys)
             # sort all buys from the most near one to the most far one
             buys.sort(key=lambda x: abs(amount_buy - x[1]))
+            best_order = buys[0]
         
         else:
-            pass
+            # place an order and wait to be compleated
+            self.__database.insert_into("INSERT INTO ")
 
     def _buy(self):
         '''
