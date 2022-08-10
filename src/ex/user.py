@@ -44,13 +44,6 @@ class User:
             ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date}')
         ''')
 
-
-    def __execute_order(order_id : str):
-        '''
-        Take a order id an complete it
-        '''
-        pass
-
     def _first_access(self):
         
         name = self.__view.ask_input("Insert Name -> ")
@@ -164,8 +157,32 @@ class User:
             buys = list(buys)
             # sort all buys from the most near one to the most far one
             buys.sort(key=lambda x: abs(amount_buy - x[1]))
-            best_order = buys[0]
-        
+            best_order_id = buys[0][0]
+
+            # QUERY get order target info
+            order_data = self.__database.select(f'''
+                SELECT `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`
+                FROM transazione
+                WHERE OrdineID = {best_order_id}
+            ''')
+            order_data = order_data[0]
+
+            to_send_addr = order_data[2]
+
+            # transaction to one who want to buy this coin
+            self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell)
+            
+            to_recive_addr = order_data[3]
+            amount_buy = order_data[0]
+
+            # transaction to me
+            self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy)
+
+            # delete the order
+            # put into scambio table
+            
+
+
         else:
             # place an order and wait to be compleated
             date = datetime.now()
