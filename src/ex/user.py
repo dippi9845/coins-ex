@@ -44,6 +44,13 @@ class User:
             ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date}')
         ''')
 
+
+    def __execute_order(order_id : str):
+        '''
+        Take a order id an complete it
+        '''
+        pass
+
     def _first_access(self):
         
         name = self.__view.ask_input("Insert Name -> ")
