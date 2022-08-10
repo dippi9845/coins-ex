@@ -28,6 +28,7 @@ CREATE TABLE ATM (
 
 DROP TABLE IF EXISTS ContoCorrente;
 CREATE TABLE ContoCorrente (
+	UserID INT NOT NULL,
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo INT NOT NULL CHECK(Saldo > 0),
 	Nome VARCHAR(255) NOT NULL,
@@ -37,6 +38,7 @@ CREATE TABLE ContoCorrente (
 
 DROP TABLE IF EXISTS Wallet;
 CREATE TABLE Wallet (
+	UserID INT NOT NULL,
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo INT NOT NULL CHECK(Saldo > 0),
 	Nome VARCHAR(255) NOT NULL,
@@ -96,13 +98,14 @@ CREATE TABLE Ordine (
 
 DROP TABLE IF EXISTS Transazione;
 CREATE TABLE Transazione (
+	ID INT AUTO_INCREMENT,
 	`Indirizzo Entrata` VARCHAR(255) NOT NULL,
 	`Indirizzo Uscita` VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Ora DATE NOT NULL,
 	Data TIME NOT NULL,
-	PRIMARY KEY (Ora, Data),
+	PRIMARY KEY (ID),
 
 DROP TABLE IF EXISTS Transazione_fisica;
 CREATE TABLE Transazione_fisica (
@@ -134,6 +137,18 @@ DROP TABLE IF EXISTS registrati;
 CREATE TABLE registrati (
 	ID INT NOT NULL,
 	Nome VARCHAR(255) NOT NULL);
+
+DROP TABLE IF EXISTS scambio;
+CREATE TABLE scambio (
+	`Compro ID` INT NOT NULL,
+	`Vendo ID` INT NOT NULL,
+	`Ticker compro` VARCHAR(255) NOT NULL,
+	`Ticker vendo` VARCHAR(255) NOT NULL,
+	`Quantita compro` INT NOT NULL CHECK (`Quantita compro` > 0),
+	`Quantita vendo` INT NOT NULL CHECK (`Quantita vendo` > 0),
+	Data DATE NOT NULL,
+	Ora TIME NOT NULL
+);
 
 -- Instances needed section
 INSERT INTO fiat (Nome, Ticker)
