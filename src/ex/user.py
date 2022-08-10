@@ -148,7 +148,7 @@ class User:
         '''
         pass
 
-    def _sell(self, address_in : str, address_out : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
+    def _sell(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
         want to sell crypto
         '''
@@ -168,7 +168,13 @@ class User:
         
         else:
             # place an order and wait to be compleated
-            self.__database.insert_into("INSERT INTO ")
+            date = datetime.now()
+            
+            # QUERY for inser an order
+            self.__database.insert_into(f'''
+                INSERT INTO Ordine (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
+                VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
+            ''')
 
     def _buy(self):
         '''
