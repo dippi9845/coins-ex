@@ -66,8 +66,9 @@ class User:
         ''')
 
         # QUERY get ID of least insered user
-        resp = self.__database.insert_into(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")
-        self.__access_info = resp[0]
+        # resp = self.__database.insert_into(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")
+        # self.__access_info = resp[0]
+        self.__access_info = self.__database.insered_id()
 
         self._register(to_register)
         
@@ -133,8 +134,7 @@ class User:
                 INSERT INTO contocorrente (Indirizzo, Saldo, Nome, Ticker)
                 VALUES ("{sha256(to_hash).hexdigest()}", {amount}, "{exchange_name}", "{fiat_ticker}")
             ''')
-            
-
+    
     def _report(self):
         '''
         request a report from the exchange
