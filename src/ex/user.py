@@ -141,11 +141,24 @@ class User:
         '''
         pass
 
-    def _sell(self):
+    def _sell(self, address_in : str, address_out : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
         want to sell crypto
         '''
-        pass
+        # '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date}'
+        # QUERY get all order of buy for this crypto and the amount in the other currency
+        buys = self.__database.select(f'''
+        SELECT OrdineID, `Quantita compro`
+        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy} AND `Quantita compro` BETWEEN {amount_buy * (1-tollerance)} AND {amount_buy * (1+tollerance)}
+        ''')
+
+        if len(buys) > 0:
+            buys = list(buys)
+            # sort all buys from the most near one to the most far one
+            buys.sort(key=lambda x: abs(amount_buy - x[1]))
+        
+        else:
+            pass
 
     def _buy(self):
         '''
