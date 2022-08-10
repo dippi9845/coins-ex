@@ -40,6 +40,10 @@ class Database:
     def select(self, sql : str) -> Any:
         self.execute(sql)
         return self.__cursor.fetchall()
+    
+    def insered_id(self) -> Any:
+        return self.__cursor.lastrowid
+
 
 if __name__ == "__main__":
     host = input("Insert hostname (localhost) : ").strip()
