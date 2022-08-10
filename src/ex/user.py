@@ -1,3 +1,4 @@
+from typing import Any
 from view import View, TerminalView
 from database import Database
 from hashlib import sha256
@@ -5,11 +6,6 @@ from time import time
 from random import randbytes
 from enum import Enum
 from datetime import datetime
-
-
-class OptionType(Enum):
-    BUY = "Compra",
-    SELL = "Vendi"
 
 class User:
 
@@ -35,7 +31,7 @@ class User:
         self.__registered_exchanges = []
         self.__database = Database()
 
-    def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int):
+    def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int) -> Any:
         date = datetime.now()
         # QUERY create a transaction
         self.__database.insert_into(f'''
@@ -43,6 +39,8 @@ class User:
             VALUES
             ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date}')
         ''')
+
+        return self.__database.insered_id()
 
     def _first_access(self):
         
