@@ -142,10 +142,10 @@ DROP TABLE IF EXISTS scambio;
 CREATE TABLE scambio (
 	`Compro ID` INT NOT NULL,
 	`Vendo ID` INT NOT NULL,
-	`Ticker compro` VARCHAR(255) NOT NULL,
-	`Ticker vendo` VARCHAR(255) NOT NULL,
-	`Quantita compro` INT NOT NULL CHECK (`Quantita compro` > 0),
-	`Quantita vendo` INT NOT NULL CHECK (`Quantita vendo` > 0),
+	`Ticker crypto` VARCHAR(255) NOT NULL,
+	`Ticker fiat` VARCHAR(255) NOT NULL,
+	`Quantita crypto` INT NOT NULL CHECK (`Quantita compro` > 0),
+	`Qunatita fiat` INT NOT NULL CHECK (`Quantita vendo` > 0),
 	Data DATE NOT NULL,
 	Ora TIME NOT NULL
 );
