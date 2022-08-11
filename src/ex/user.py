@@ -42,6 +42,11 @@ class User:
 
         return self.__database.insered_id()
 
+    def __is_crypto_ticker(self, ticker : str) -> bool:
+        # QUERY
+        cryptos_ticker = self.__database.select("SELECT Ticker FROM crypto")
+        return ticker in cryptos_ticker
+
     def _first_access(self):
         
         name = self.__view.ask_input("Insert Name -> ")
@@ -168,16 +173,33 @@ class User:
             to_send_addr = order_data[2]
 
             # transaction to one who want to buy this coin
-            self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell)
+            id1 = self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell)
             
             to_recive_addr = order_data[3]
             amount_buy = order_data[0]
 
             # transaction to me
-            self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy)
+            id2 = self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy)
 
-            # delete the order
-            # put into scambio table
+            # QUERY delete the order
+            self.__database.delete(f"DELETE FROM ordine WHERE OrdineID = {best_order_id}")
+
+            if self.__is_crypto_ticker(ticker_sell):
+
+                crypto_ticker = ticker_sell
+                fiat_ticker = ticker_buy
+            
+            else:
+                crypto_ticker = ticker_buy
+                fiat_ticker = ticker_sell
+
+            # QUERY put into scambio table
+            self.__database.insert_into(f'''
+                INSERT INTO scambio
+                (`Transazione crypto`, `Transazione fiat`, `Ticker crypto`, `Ticker fiat`, `Quantita crypto`, `Qunatita fiat`)
+                VALUES
+                ()
+            ''')
             
 
 
