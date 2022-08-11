@@ -207,11 +207,68 @@ class User:
                 VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
 
-    def _buy(self):
+    def _buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
         want to buy crypto
         '''
-        pass
+        # QUERY get all order of sell for this crypto and the amount in the other currency
+        sells = self.__database.select(f'''
+        SELECT OrdineID, `Quantita compro` FROM Ordine
+        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy} AND
+        `Quantita compro` BETWEEN {amount_buy * (1-tollerance)} AND {amount_buy * (1+tollerance)}
+        ''')
+
+        if len(sells) > 0:
+            sells = list(sells)
+            # sort all buys from the most near one to the most far one
+            sells.sort(key=lambda x: abs(amount_buy - x[1]))
+            best_order_id = sells[0][0]
+
+            # QUERY get order target info
+            order_data = self.__database.select(f'''
+                SELECT `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`
+                FROM transazione
+                WHERE OrdineID = {best_order_id}
+            ''')
+            order_data = order_data[0]
+
+            to_send_addr = order_data[2]
+
+            # transaction to one who want to sell this coin
+            id1 = self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell)
+            
+            to_recive_addr = order_data[3]
+            amount_buy = order_data[0]
+
+            # transaction to me
+            id2 = self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy)
+
+            # QUERY delete the order
+            self.__database.delete(f"DELETE FROM ordine WHERE OrdineID = {best_order_id}")
+
+            if self.__is_crypto_ticker(ticker_sell):
+                crypto_transaction = id1
+                fiat_transaction = id2
+            else:
+                crypto_transaction = id2
+                fiat_transaction = id1
+
+            # QUERY put into scambio table
+            self.__database.insert_into(f'''
+                INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`)
+                VALUES ({crypto_transaction}, {fiat_transaction})
+            ''')
+
+
+        else:
+            # place an order and wait to be compleated
+            date = datetime.now()
+            
+            # QUERY for inser an order
+            self.__database.insert_into(f'''
+                INSERT INTO Ordine (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
+                VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
+            ''')
 
     def _withdraw(self, atm_id : str):
         '''
