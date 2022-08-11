@@ -1,4 +1,3 @@
-from logging import root
 from typing import Any
 import mysql.connector
 from json import loads
