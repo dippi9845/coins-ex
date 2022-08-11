@@ -105,7 +105,7 @@ CREATE TABLE Transazione (
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Ora DATE NOT NULL,
 	Data TIME NOT NULL,
-	PRIMARY KEY (ID),
+	PRIMARY KEY (ID));
 
 DROP TABLE IF EXISTS Transazione_fisica;
 CREATE TABLE Transazione_fisica (
