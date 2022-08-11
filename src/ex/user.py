@@ -148,7 +148,6 @@ class User:
         '''
         want to sell crypto
         '''
-        # '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date}'
         # QUERY get all order of buy for this crypto and the amount in the other currency
         buys = self.__database.select(f'''
         SELECT OrdineID, `Quantita compro` FROM Ordine
