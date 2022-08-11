@@ -185,22 +185,17 @@ class User:
             self.__database.delete(f"DELETE FROM ordine WHERE OrdineID = {best_order_id}")
 
             if self.__is_crypto_ticker(ticker_sell):
-
-                crypto_ticker = ticker_sell
-                fiat_ticker = ticker_buy
-            
+                crypto_transaction = id1
+                fiat_transaction = id2
             else:
-                crypto_ticker = ticker_buy
-                fiat_ticker = ticker_sell
+                crypto_transaction = id2
+                fiat_transaction = id1
 
             # QUERY put into scambio table
             self.__database.insert_into(f'''
-                INSERT INTO scambio
-                (`Transazione crypto`, `Transazione fiat`, `Ticker crypto`, `Ticker fiat`, `Quantita crypto`, `Qunatita fiat`)
-                VALUES
-                ()
+                INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`)
+                VALUES ({crypto_transaction}, {fiat_transaction})
             ''')
-            
 
 
         else:
