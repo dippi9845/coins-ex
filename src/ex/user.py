@@ -142,8 +142,19 @@ class User:
         '''
         request a report from the exchange
         '''
-        pass
+        # QUERY gets all wallets 
+        wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={self.__access_info}")
+        self.__view.show_message("Wallets:")
 
+        for wallet in wallets:
+            self.__view.show_message(f"Address: {wallet[0]}, contains: {wallet[1]}, balance: {wallet[2]}")
+
+        accounts = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM contocorrente WHERE UserID={self.__access_info}")
+        self.__view.show_message("Accounts:")
+        
+        for account in accounts:
+            self.__view.show_message(f"Address: {account[0]}, contains: {account[1]}, balance: {account[2]}")
+    
     def _sell(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
         want to sell crypto
