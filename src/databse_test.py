@@ -1,7 +1,9 @@
 from ex.database import Database, DatabaseConfig
 import unittest
 import string
-from random import choices, randint, sample
+from random import choices, randint, sample, seed as set_seed
+from time import time
+from datetime import datetime
 
 TestConfig = {
     'host' : DatabaseConfig['host'],
@@ -15,7 +17,7 @@ class DatabseTest(unittest.TestCase):
     db = Database(cofig=TestConfig)
 
     def __random_code(self) -> str:
-        return "".join(sample(choices(string.ascii_letters, k=randint(5, 10)) + choices(string.digits, k=randint(5, 10))))
+        return "".join(sample(choices(string.ascii_letters, k=randint(5, 10)) + choices(string.digits, k=randint(5, 10)), k=10))
 
     def __random_string(self) -> str:
         return "".join(choices(string.ascii_letters, k=randint(5, 10)))
@@ -23,10 +25,13 @@ class DatabseTest(unittest.TestCase):
     def __random_nums(self) -> str:
         return "".join(choices(string.digits, k=randint(5, 10)))
     
-    def __random_date(self, sep="-") -> str:
-        return "".join(choices(string.digits, k=4)) + "-" + "".join(choices(string.digits, k=2)) + "-" + "".join(choices(string.digits, k=2))
+    def __random_date(self, sep="-", seed=31415) -> str:
+        set_seed(seed)
+        d = randint(1, int(time()))
+        return datetime.fromtimestamp(d).strftime('%Y' + sep + '%m' + sep + '%d')
 
-    def create_user(self):
+
+    def test_create_user(self):
         name = self.__random_string()
         surname = self.__random_string()
         email = self.__random_string()
@@ -40,7 +45,7 @@ class DatabseTest(unittest.TestCase):
         self.db.insert_into(f'''
         INSERT INTO utente
         (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES({name}, {surname}, {email}, {password}, {fiscal_code}, {nationality}, {telephone}, {residence}, {bith_day})
+        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
         
         user_id = self.db.insered_id()
@@ -59,24 +64,42 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(data[5], nationality, "nationality is different")
         self.assertEqual(data[6], telephone, "telephone is different")
         self.assertEqual(data[7], residence, "residence is different")
-        self.assertEqual(data[8], bith_day, "bith_day is different")
+        self.assertEqual(data[8].strftime('%Y-%m-%d'), str(bith_day), "bith_day is different")
 
 
 
 if __name__ == "__main__":
-
-    InitConfig = {
-        'host' : DatabaseConfig['host'],
-        'username' : DatabaseConfig['username'],
-        'password' : DatabaseConfig['password'],
-        'database_name' : ''
-    }
-
-    executor = Database(cofig=InitConfig)
-    with open("test.sql", "r") as f:
-        query = f.read().split(";")
+    from sys import argv
+    it = iter(argv)
+    next(it)
+    cmd = next(it, "tests")
     
-    for i in query:
-        executor.execute(i)
+    if cmd == "init":
+        host = input("Insert hostname (localhost) : ").strip()
+        
+        if host == "":
+            host = "localhost"
+        
+        user = input("Insert user name (root) -> ")
+
+        if user == "":
+            user = "root"
+
+        passw = input(f"Insert {user} password -> ")
+
+        InitConfig = {
+            'host' : host,
+            'username' : user,
+            'password' : passw,
+            'database_name' : ''
+        }
+
+        executor = Database(cofig=InitConfig)
+        with open("test.sql", "r") as f:
+            query = f.read().split(";")
+        
+        for i in query:
+            executor.execute(i)
     
-    unittest.main()
+    elif cmd == "tests":
+        unittest.main()

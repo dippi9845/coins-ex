@@ -2,7 +2,7 @@ from typing import Any
 import mysql.connector
 from json import loads
 from functools import partial
-from config import DatabaseConfig
+from ex.config import DatabaseConfig
 
 class Database:
     def __init__(self, cofig : dict=DatabaseConfig) -> None:
@@ -84,6 +84,8 @@ if __name__ == "__main__":
     
     cursor = cnx.cursor()
     
+    cursor.execute("")
+
     with open("../../init.sql", "r") as f:
         query = f.read().split(";")
     
