@@ -14,12 +14,16 @@ TestConfig = {
 
 class DatabseTest(unittest.TestCase):
 
-    db = Database(cofig=TestConfig)
+    def __init__(self, methodName: str = ...) -> None:
+        super().__init__(methodName)
+        self.db = Database(cofig=TestConfig)
+        set_seed(time())
 
     def __random_code(self) -> str:
         return "".join(sample(choices(string.ascii_letters, k=randint(5, 10)) + choices(string.digits, k=randint(5, 10)), k=10))
 
     def __random_string(self) -> str:
+        set_seed(time())
         return "".join(choices(string.ascii_letters, k=randint(5, 10)))
 
     def __random_nums(self) -> str:
@@ -65,6 +69,76 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(data[6], telephone, "telephone is different")
         self.assertEqual(data[7], residence, "residence is different")
         self.assertEqual(data[8].strftime('%Y-%m-%d'), str(bith_day), "bith_day is different")
+    
+    def test_create_exchange(self):
+        name = self.__random_string()
+        sede_operativa = self.__random_string()
+        sede_legale = self.__random_string()
+        sitoweb = "https://" + self.__random_string()
+        nation = self.__random_string()
+        fondatore = self.__random_string()
+
+        self.db.insert_into(f'''
+        INSERT INTO exchange
+        (Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore)
+        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{nation}", "{sitoweb}", "{fondatore}")
+        ''')
+        
+        user_id = self.db.insered_id()
+
+        data = self.db.select(f'''
+        SELECT Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore
+        FROM exchange
+        WHERE Nome='{name}'
+        ''')
+        #self.db.delete(f"DELETE FROM exchange WHERE Nome='{name}'")
+        data = data[0]
+        self.assertEqual(data[0], name, "name is different")
+        self.assertEqual(data[1], sede_operativa, "surname is different")
+        self.assertEqual(data[2], sede_legale, "email is different")
+        self.assertEqual(data[3], nation, "password is different")
+        self.assertEqual(data[4], sitoweb, "fiscal_code is different")
+        self.assertEqual(data[5], fondatore, "telephone is different")
+
+    
+    def test_register_to_exchange(self):
+
+        name = self.__random_string()
+        sede_operativa = self.__random_string()
+        sede_legale = self.__random_string()
+        sitoweb = "https://" + self.__random_string()
+        nation = self.__random_string()
+        fondatore = self.__random_string()
+
+        self.db.insert_into(f'''
+        INSERT INTO exchange
+        (Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore)
+        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{nation}", "{sitoweb}", "{fondatore}")
+        ''')
+
+        name = self.__random_string()
+        surname = self.__random_string()
+        email = self.__random_string()
+        password = self.__random_code()
+        fiscal_code = self.__random_code()
+        nationality = self.__random_string()
+        telephone = self.__random_nums()
+        residence = self.__random_string()
+        bith_day = self.__random_date()
+
+        self.db.insert_into(f'''
+        INSERT INTO utente
+        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        ''')
+        
+        user_id = self.db.insered_id()
+
+        #self.db.delete(f"DELETE FROM exchange WHERE Nome='{name}'")
+        self.db.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({user_id}, '{name}')")
+
+
+
 
 
 
