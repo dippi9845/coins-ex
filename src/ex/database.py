@@ -6,13 +6,13 @@ from functools import partial
 from config import DatabaseConfig
 
 class Database:
-    def __init__(self) -> None:
+    def __init__(self, cofig : dict=DatabaseConfig) -> None:
         
         self.__cnx = mysql.connector.connect(
-            host=DatabaseConfig['host'],
-            user=DatabaseConfig['username'],
-            password=DatabaseConfig['password'],
-            database=DatabaseConfig["database_name"]
+            host=cofig['host'],
+            user=cofig['username'],
+            password=cofig['password'],
+            database=cofig["database_name"]
         )
 
         self.__cursor = self.__cnx.cursor()
@@ -44,8 +44,24 @@ class Database:
     def insered_id(self) -> Any:
         return self.__cursor.lastrowid
     
-    def get_countervalue(ticker_fiat : str, ticker_crypto : str, date : str, time : str):
-        pass
+    '''
+    from datetime import date, timedelta
+
+    def dategenerator(start, end):
+        current = start
+        while current <= end:
+            yield current
+            current += timedelta(days=1)
+    '''
+
+    def get_countervalue_by_date(self, ticker_fiat : str, ticker_crypto : str, date : str):
+        self.select(f'''
+            SELECT C.Quantita, F.Quantita
+            FROM Transazioni C, Transazioni F
+            WHERE C.data = {date} AND C.Ticker = '{ticker_crypto}' 
+            INNER JOIN scambi ON scambi.`Transazione crypto` = C.ID
+            INNER JOIN scambi ON scambi.`Transazione fiat` = F.ID
+        ''')
 
 
 if __name__ == "__main__":
