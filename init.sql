@@ -140,8 +140,8 @@ CREATE TABLE registrati (
 
 DROP TABLE IF EXISTS scambio;
 CREATE TABLE scambio (
-	`Compro ID` INT NOT NULL,
-	`Vendo ID` INT NOT NULL,
+	`Transazione crypto` INT NOT NULL,
+	`Transazione fiat` INT NOT NULL,
 	`Ticker crypto` VARCHAR(255) NOT NULL,
 	`Ticker fiat` VARCHAR(255) NOT NULL,
 	`Quantita crypto` INT NOT NULL CHECK (`Quantita compro` > 0),
