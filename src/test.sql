@@ -6,9 +6,13 @@
 -- DATABASE Section
 -- ________________
 
+CREATE USER IF NOT EXISTS 'db-project'@'localhost' IDENTIFIED BY 'db-project';
+
 DROP DATABASE IF EXISTS exchanges_tests;
 CREATE DATABASE exchanges_tests;
 USE exchanges_tests;
+
+GRANT ALL PRIVILEGES ON exchanges_tests . *  TO 'db-project'@'localhost';
 
 -- TABLESpace Section
 -- __________________
