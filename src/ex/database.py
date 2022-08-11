@@ -43,6 +43,9 @@ class Database:
     
     def insered_id(self) -> Any:
         return self.__cursor.lastrowid
+    
+    def get_countervalue(ticker_fiat : str, ticker_crypto : str, date : str, time : str):
+        pass
 
 
 if __name__ == "__main__":
