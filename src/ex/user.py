@@ -184,7 +184,7 @@ class User:
         # QUERY get all order of buy for this crypto and the amount in the other currency
         buys = self.__database.select(f'''
         SELECT OrdineID, `Quantita compro` FROM Ordine
-        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy} AND
+        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy}" AND
         `Quantita compro` BETWEEN {amount_buy * (1-tollerance)} AND {amount_buy * (1+tollerance)}
         ''')
 
