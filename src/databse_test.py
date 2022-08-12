@@ -69,6 +69,9 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(data[6], telephone, "telephone is different")
         self.assertEqual(data[7], residence, "residence is different")
         self.assertEqual(data[8].strftime('%Y-%m-%d'), str(bith_day), "bith_day is different")
+
+        test_id = self.db.select(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")[0][0]
+        self.assertEqual(user_id, test_id)
     
     def test_create_exchange(self):
         name = self.__random_string()
@@ -100,7 +103,6 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(data[4], sitoweb, "fiscal_code is different")
         self.assertEqual(data[5], fondatore, "telephone is different")
 
-    
     def test_register_to_exchange(self):
 
         name = self.__random_string()
@@ -137,9 +139,16 @@ class DatabseTest(unittest.TestCase):
         #self.db.delete(f"DELETE FROM exchange WHERE Nome='{name}'")
         self.db.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({user_id}, '{name}')")
 
+        check_name = self.db.select(f"SELECT Nome FROM registrati WHERE ID = {user_id}")[0][0]
+        self.assertEqual(check_name, name)
 
+    def test_is_crypto_ticker(self):
+        self.db.insert_into("INSERT INTO crypto VALUES ('Bitcoin', 'BTC')")
+        cryptos_ticker = self.db.select("SELECT Ticker FROM crypto")[0]
+        self.db.delete("DELETE FROM crypto WHERE Ticker = 'BTC'")
+        self.assertTrue("BTC" in cryptos_ticker)
 
-
+    def test_
 
 
 if __name__ == "__main__":
