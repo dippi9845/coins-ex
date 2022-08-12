@@ -44,6 +44,7 @@ class User:
 
     def __is_crypto_ticker(self, ticker : str) -> bool:
         # QUERY
+        # TESTED
         cryptos_ticker = self.__database.select("SELECT Ticker FROM crypto")
         return ticker in cryptos_ticker
 
@@ -62,15 +63,13 @@ class User:
         to_register = self.__view.menu("Choose the first exchange", self._current_exchanges())
 
         # QUERY insert utente instance
+        # TESTED
         self.__database.insert_into(f'''
         INSERT INTO utente
         (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
         VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
 
-        # QUERY get ID of least insered user
-        # resp = self.__database.insert_into(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")
-        # self.__access_info = resp[0]
         self.__access_info = self.__database.insered_id()
 
         self._register(to_register)
@@ -81,6 +80,7 @@ class User:
         '''
         if self.__access_info is not None:
             # QUERY register to that exchange
+            # TESTED
             self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{exchange_name}')")
             self._create_fiat_account(exchange_name)
             self.__registered_exchanges.append(exchange_name)
@@ -93,6 +93,7 @@ class User:
         list all currrent databases
         '''
         # QUERY get all existing exchanges
+        # TESTED
         rtr = self.__database.select("SELECT Nome FROM exchange")
         rtr = list(map(lambda x: x[0], rtr))
         return rtr
@@ -106,6 +107,7 @@ class User:
         password = self.__view.ask_input("insert password -> ")
         
         # QUERY get id
+        # TESTED
         resp = self.__database.select(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")
         
         if len(resp) == 0:
@@ -114,6 +116,7 @@ class User:
         user_id = resp[0]
         self.__access_info = user_id
         # QUERY get registerd exchnges
+        # TESTED
         resp = self.__database.select(f"SELCECT Nome FROM registrati WHERE ID = {user_id}")
         self.__registered_exchanges = list(map(lambda x: x[0], resp))
         return True
