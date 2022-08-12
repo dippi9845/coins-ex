@@ -69,8 +69,30 @@ class DatabseTest(unittest.TestCase):
         self.db.insert_into(f"""
         INSERT INTO Ordine
         (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
-        VALUES ({user_id}, '{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{sha256(randbytes(20)).hexdigest()}', '{sha256(randbytes(20)).hexdigest()}', '{date}', '{rnd_time}')
+        VALUES ({user_id}, '{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{address_in}', '{address_out}', '{date}', '{rnd_time}')
         """)
+
+    def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> int:
+        date = datetime.now()
+        self.db.insert_into(f'''
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Ora, Data)
+            VALUES
+            ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+        ''')
+
+        transaction_id = self.db.insered_id()
+        
+        if wallet == True:
+            table = "wallet"
+            
+        
+        elif wallet == False:
+            table = "contocorrente"
+       
+        self.db.update(f"UPDATE {table} SET Saldo = Saldo - {amount} WHERE Indirizzo='{address_out}'")
+        self.db.update(f"UPDATE {table} SET Saldo = Saldo + {amount} WHERE Indirizzo='{address_in}'")
+
+        return transaction_id
 
 
     def test_create_user(self):
@@ -342,21 +364,46 @@ class DatabseTest(unittest.TestCase):
     
     def test_sell(self):
         set_seed(time())
+
+        user1 = self.__random_int()
+        user2 = self.__random_int()
         
-        #self.db.insert_into(f'''
-        #    INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
-        #    VALUES ({user_id}, "{addr1_1}", 10, "{name}", "BTC")
-        #''')
+        btc_addr1 = sha256(randbytes(20)).hexdigest()
+        eur_addr1 = sha256(randbytes(20)).hexdigest()
+
+        btc_addr2 = sha256(randbytes(20)).hexdigest()
+        eur_addr2 = sha256(randbytes(20)).hexdigest()
+
+        start_amount_btc1 = 2
+        start_amount_eur1 = 30000
+        start_amount_btc2 = 20000
+        start_amount_eur2 = 30000
         
-        #self.db.insert_into(f'''
-        #    INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
-        #    VALUES ({user_id}, "{addr1_2}", 0, "{name}", "EUR")
-        #''')
+
+        self.db.insert_into(f'''
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user1}, "{btc_addr1}", {start_amount_btc1}, "{self.__random_string()}", "BTC")
+        ''')
+
+        self.db.insert_into(f'''
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user2}, "{btc_addr2}", {start_amount_btc2}, "{self.__random_string()}", "BTC")
+        ''')
+        
+        self.db.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user1}, "{eur_addr1}", {start_amount_eur1}, "{self.__random_string()}", "EUR")
+        ''')
+
+        self.db.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user2}, "{eur_addr2}", {start_amount_eur2}, "{self.__random_string()}", "EUR")
+        ''')
         
 
         self.__insert_order("EUR", "BTC", amount_buy=20000, amount_sell=1)
         self.__insert_order("EUR", "BTC", amount_buy=19000, amount_sell=1)
-        self.__insert_order("EUR", "BTC", amount_buy=18000, amount_sell=1)
+        self.__insert_order("EUR", "BTC", amount_buy=18000, amount_sell=1, address_in=eur_addr2, address_out=btc_addr2)
         self.__insert_order("EUR", "BTC", amount_buy=17000, amount_sell=1)
         self.__insert_order("EUR", "BTC", amount_buy=16000, amount_sell=1)
         self.__insert_order("EUR", "BTC", amount_buy=15000, amount_sell=1)
@@ -364,13 +411,13 @@ class DatabseTest(unittest.TestCase):
         # tollerance test
         tollerance = 0.1
         amount_buy = 17501
-        sells = self.db.select(f'''
-        SELECT OrdineID, `Quantita compro` FROM Ordine
+        orders = self.db.select(f'''
+        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo` FROM Ordine
         WHERE `Ticker compro`="EUR" AND `Ticker vendo`="BTC" AND
         `Quantita compro` BETWEEN {int(amount_buy * (1-tollerance))} AND {int(amount_buy * (1+tollerance))}
         ''')
         
-        sells = list(map(lambda x: x[1], sells))
+        sells = list(map(lambda x: x[1], orders))
         
         self.assertIn(19000, sells)
         self.assertIn(18000, sells)
@@ -380,8 +427,31 @@ class DatabseTest(unittest.TestCase):
         self.assertNotIn(15000, sells)
 
         # most near test
-        sells.sort(key=lambda x: abs(amount_buy - x))
-        self.assertEqual(sells[0], 18000)
+        orders.sort(key=lambda x: abs(amount_buy - x[1]))
+        self.assertEqual(orders[0][1], 18000)
+        self.assertEqual(orders[0][0], eur_addr2)
+        self.assertEqual(orders[0][2], btc_addr2)
+
+        # voglio euro per btc
+        # mando euro a lui
+        self.__make_transaction(eur_addr2, eur_addr1, "EUR", orders[0][1], wallet=False)
+        final_eur1 = self.db.select(f"SELECT Saldo FROM contocorrente WHERE Indirizzo='{eur_addr1}'")[0][0]
+        final_eur2 = self.db.select(f"SELECT Saldo FROM contocorrente WHERE Indirizzo='{eur_addr2}'")[0][0]
+        
+        self.assertEqual(final_eur1, start_amount_eur1 - orders[0][1])
+        self.assertEqual(final_eur2, start_amount_eur2 + orders[0][0])
+
+
+        # ricevo btc da lui
+        self.__make_transaction(btc_addr1, btc_addr2, "BTC", 1, wallet=True)
+        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr1}'")[0][0]
+        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr2}'")[0][0]
+        
+        self.assertEqual(final_btc1, start_amount_btc1 + 1)
+        self.assertEqual(final_btc2, start_amount_btc2 - 1)
+        
+        self.db.execute("DELETE FROM Ordine")
+        ## inverted
 
         self.__insert_order("BTC", "EUR", amount_buy=1100, amount_sell=20000)
         self.__insert_order("BTC", "EUR", amount_buy=1000, amount_sell=19000)
@@ -393,13 +463,13 @@ class DatabseTest(unittest.TestCase):
         # tollerance test
         tollerance = 0.1
         amount_buy = 851
-        sells = self.db.select(f'''
+        orders = self.db.select(f'''
         SELECT OrdineID, `Quantita compro` FROM Ordine
         WHERE `Ticker compro`="BTC" AND `Ticker vendo`="EUR" AND
         `Quantita compro` BETWEEN {int(amount_buy * (1-tollerance))} AND {int(amount_buy * (1+tollerance))}
         ''')
 
-        sells = list(map(lambda x: x[1], sells))
+        sells = list(map(lambda x: x[1], orders))
         self.assertNotIn(1100, sells)
         self.assertNotIn(1000, sells)
         self.assertIn(900, sells)
@@ -408,8 +478,10 @@ class DatabseTest(unittest.TestCase):
         self.assertNotIn(600, sells)
 
         # most near test
-        sells.sort(key=lambda x: abs(amount_buy - x))
-        self.assertEqual(sells[0], 900)
+        orders.sort(key=lambda x: abs(amount_buy - x[1]))
+        self.assertEqual(orders[0][1], 900)
+
+        self.db.execute("DELETE FROM Ordine")
 
 
 
