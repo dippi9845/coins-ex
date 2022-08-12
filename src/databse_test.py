@@ -300,7 +300,11 @@ class DatabseTest(unittest.TestCase):
         self.assertTrue(accounts[1][1] == balance4 or accounts[1][1] == balance3, "wrong balance")
         self.assertEqual(accounts[1][2], "EUR", "wrong ticker")
 
-
+    def test_buy(self):
+        pass
+    
+    def test_sell(self):
+        pass
 
 if __name__ == "__main__":
     from sys import argv
