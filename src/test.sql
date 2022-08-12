@@ -34,7 +34,7 @@ DROP TABLE IF EXISTS ContoCorrente;
 CREATE TABLE ContoCorrente (
 	UserID INT NOT NULL,
 	Indirizzo VARCHAR(255) NOT NULL,
-	Saldo INT NOT NULL CHECK(Saldo > 0),
+	Saldo INT NOT NULL CHECK(Saldo >= 0),
 	Nome VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	PRIMARY KEY (Indirizzo)
@@ -44,7 +44,7 @@ DROP TABLE IF EXISTS Wallet;
 CREATE TABLE Wallet (
 	UserID INT NOT NULL,
 	Indirizzo VARCHAR(255) NOT NULL,
-	Saldo INT NOT NULL CHECK(Saldo > 0),
+	Saldo INT NOT NULL CHECK(Saldo >= 0),
 	Nome VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	PRIMARY KEY (Indirizzo)
