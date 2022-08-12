@@ -28,7 +28,7 @@ class DatabseTest(unittest.TestCase):
         return "".join(choices(string.ascii_letters, k=randint(5, 10)))
 
     def __random_nums(self) -> str:
-        return "".join(choices(string.digits, k=randint(5, 10)))
+        return "".join(choices(string.digits, k=randint(5, 9)))
     
     def __random_date(self, sep="-", seed=31415) -> str:
         set_seed(seed)
@@ -194,7 +194,43 @@ class DatabseTest(unittest.TestCase):
             VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 0, "{name}", "BTC")
         ''')
 
-    #def test_make_transaction
+    def test_make_transaction(self):
+        set_seed(time())
+        addr1 = sha256(randbytes(20)).hexdigest()
+        user_id = self.__random_nums()
+        name = self.__random_string()
+
+        self.db.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{addr1}", 1000, "{name}", "EUR")
+        ''')
+
+        addr2 = sha256(randbytes(20)).hexdigest()
+        user_id = self.__random_nums()
+        name = self.__random_string()
+
+        self.db.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{addr2}", 1000, "{name}", "EUR")
+        ''')
+
+        date = datetime.now()
+        # QUERY create a transaction
+        self.db.insert_into(f'''
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Ora, Data)
+            VALUES
+            ('{addr1}', '{addr2}', 'EUR', 950, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+        ''')
+
+        self.db.update(f"UPDATE contocorrente SET Saldo = Saldo - 950 WHERE Indirizzo='{addr2}'")
+        self.db.update(f"UPDATE contocorrente SET Saldo = Saldo + 950 WHERE Indirizzo='{addr1}'")
+        balance1 = self.db.select(f"SELECT Saldo FROM contocorrente WHERE Indirizzo='{addr1}'")[0][0]
+        balance2 = self.db.select(f"SELECT Saldo FROM contocorrente WHERE Indirizzo='{addr2}'")[0][0]
+        
+        self.assertEqual(balance1, 1950, "balance is wrong")
+        self.assertEqual(balance2, 50, "balance is wrong")
+
+
 
 if __name__ == "__main__":
     from sys import argv
