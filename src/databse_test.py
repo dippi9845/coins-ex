@@ -43,7 +43,7 @@ class DatabseTest(unittest.TestCase):
         d = randint(1, int(time()))
         return datetime.fromtimestamp(d).strftime('%H' + sep + '%M' + sep + '%S')
 
-    def __insert_order(self, ticker_buy : str, ticker_sell : str, amount_buy : int=None, amount_sell : int=None, user_id : int=None, address_in : str=None, address_out : str=None, date : str=None, rnd_time : str=None):
+    def __insert_order(self, ticker_buy : str, ticker_sell : str, amount_buy : int=None, amount_sell : int=None, user_id : int=None, address_in : str=None, address_out : str=None, date : str=None, rnd_time : str=None) -> int:
         
         if amount_buy is None:
             amount_buy = self.__random_int()
@@ -72,6 +72,8 @@ class DatabseTest(unittest.TestCase):
         VALUES ({user_id}, '{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{address_in}', '{address_out}', '{date}', '{rnd_time}')
         """)
 
+        return self.db.insered_id()
+
     def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> int:
         date = datetime.now()
         self.db.insert_into(f'''
@@ -93,6 +95,36 @@ class DatabseTest(unittest.TestCase):
         self.db.update(f"UPDATE {table} SET Saldo = Saldo + {amount} WHERE Indirizzo='{address_in}'")
 
         return transaction_id
+
+    def __complete_order(self, order_id : int, address_sell : str=None, address_buy : str=None):
+        # manual tested
+        if address_sell is None:
+            address_sell = sha256(randbytes(20)).hexdigest()
+        
+        if address_buy is None:
+            address_buy = sha256(randbytes(20)).hexdigest()
+
+        order = self.db.select(f"""
+        SELECT `Indirizzo compro`, `Indirizzo vendo`, `Quantita compro`, `Quantita vendo`, `Ticker compro`, `Ticker vendo` FROM Ordine
+        WHERE OrdineID={order_id}
+        """)[0]
+        
+        cryptos_ticker = self.db.select("SELECT Ticker FROM crypto")[0]
+        
+        if order[4] in cryptos_ticker:
+            trans_cry = self.__make_transaction(order[0], address_sell, order[4], order[2], wallet=True)
+            trans_eur = self.__make_transaction(address_buy, order[1], order[5], order[3], wallet=False)
+            
+        
+        elif order[5] in cryptos_ticker:
+            trans_eur = self.__make_transaction(order[0], address_sell, order[4], order[2], wallet=False)
+            trans_cry = self.__make_transaction(address_buy, order[1], order[5], order[3], wallet=True)
+        
+        else:
+            raise TypeError("no ticker in crypto")
+        
+        self.db.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
+        self.db.delete(f"DELETE FROM ordine WHERE OrdineID={order_id}")
 
 
     def test_create_user(self):
@@ -431,7 +463,7 @@ class DatabseTest(unittest.TestCase):
 
         # voglio euro per btc
         # mando euro a lui
-        self.__make_transaction(eur_addr2, eur_addr1, "EUR", orders[0][1], wallet=False)
+        trans_eur = self.__make_transaction(eur_addr2, eur_addr1, "EUR", orders[0][1], wallet=False)
         final_eur1 = self.db.select(f"SELECT Saldo FROM contocorrente WHERE Indirizzo='{eur_addr1}'")[0][0]
         final_eur2 = self.db.select(f"SELECT Saldo FROM contocorrente WHERE Indirizzo='{eur_addr2}'")[0][0]
         
@@ -440,12 +472,14 @@ class DatabseTest(unittest.TestCase):
 
 
         # ricevo btc da lui
-        self.__make_transaction(btc_addr1, btc_addr2, "BTC", 1, wallet=True)
+        trans_cry =self.__make_transaction(btc_addr1, btc_addr2, "BTC", 1, wallet=True)
         final_btc1 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr1}'")[0][0]
         final_btc2 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr2}'")[0][0]
         
         self.assertEqual(final_btc1, start_amount_btc1 + 1)
         self.assertEqual(final_btc2, start_amount_btc2 - 1)
+
+        self.db.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
         
         self.db.execute("DELETE FROM Ordine")
         ## inverted
@@ -522,6 +556,11 @@ class DatabseTest(unittest.TestCase):
 
         self.db.execute("DELETE FROM Ordine")
 
+    def test_medium_price(self):
+        self.db.insert_into("INSERT INTO crypto VALUES ('Bitcoin', 'BTC')")
+        order = self.__insert_order("BTC", "EUR")
+        self.__complete_order(order)
+        self.db.delete("DELETE FROM crypto WHERE Ticker = 'BTC'")
 
 
 if __name__ == "__main__":
