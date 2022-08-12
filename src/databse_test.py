@@ -37,6 +37,40 @@ class DatabseTest(unittest.TestCase):
         set_seed(seed)
         d = randint(1, int(time()))
         return datetime.fromtimestamp(d).strftime('%Y' + sep + '%m' + sep + '%d')
+    
+    def __random_time(self, sep=":", seed=31415) -> str:
+        set_seed(seed)
+        d = randint(1, int(time()))
+        return datetime.fromtimestamp(d).strftime('%H' + sep + '%M' + sep + '%S')
+
+    def __insert_order(self, ticker_buy : str, ticker_sell : str, amount_buy : int=None, amount_sell : int=None, user_id : int=None, address_in : str=None, address_out : str=None, date : str=None, rnd_time : str=None):
+        
+        if amount_buy is None:
+            amount_buy = self.__random_int()
+
+        if amount_sell is None:
+            amount_sell = self.__random_int()
+        
+        if user_id is None:
+            user_id = self.__random_int()
+        
+        if address_in is None:
+            address_in = sha256(randbytes(20)).hexdigest()
+
+        if address_out is None:
+            address_out = sha256(randbytes(20)).hexdigest()
+        
+        if date is None:
+            date = self.__random_date()
+        
+        if rnd_time is None:
+            rnd_time = self.__random_time()
+
+        self.db.insert_into(f"""
+        INSERT INTO Ordine
+        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
+        VALUES ({user_id}, '{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{sha256(randbytes(20)).hexdigest()}', '{sha256(randbytes(20)).hexdigest()}', '{date}', '{rnd_time}')
+        """)
 
 
     def test_create_user(self):
@@ -308,29 +342,76 @@ class DatabseTest(unittest.TestCase):
     
     def test_sell(self):
         set_seed(time())
+        
+        #self.db.insert_into(f'''
+        #    INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+        #    VALUES ({user_id}, "{addr1_1}", 10, "{name}", "BTC")
+        #''')
+        
+        #self.db.insert_into(f'''
+        #    INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+        #    VALUES ({user_id}, "{addr1_2}", 0, "{name}", "EUR")
+        #''')
+        
 
-        user_id = int(self.__random_nums())
+        self.__insert_order("EUR", "BTC", amount_buy=20000, amount_sell=1)
+        self.__insert_order("EUR", "BTC", amount_buy=19000, amount_sell=1)
+        self.__insert_order("EUR", "BTC", amount_buy=18000, amount_sell=1)
+        self.__insert_order("EUR", "BTC", amount_buy=17000, amount_sell=1)
+        self.__insert_order("EUR", "BTC", amount_buy=16000, amount_sell=1)
+        self.__insert_order("EUR", "BTC", amount_buy=15000, amount_sell=1)
 
-        name = self.__random_string()
-        addr1_1 = sha256(randbytes(20)).hexdigest()
+        # tollerance test
+        tollerance = 0.1
+        amount_buy = 17501
+        sells = self.db.select(f'''
+        SELECT OrdineID, `Quantita compro` FROM Ordine
+        WHERE `Ticker compro`="EUR" AND `Ticker vendo`="BTC" AND
+        `Quantita compro` BETWEEN {int(amount_buy * (1-tollerance))} AND {int(amount_buy * (1+tollerance))}
+        ''')
+        
+        sells = list(map(lambda x: x[1], sells))
+        
+        self.assertIn(19000, sells)
+        self.assertIn(18000, sells)
+        self.assertIn(17000, sells)
+        self.assertIn(16000, sells)
+        self.assertNotIn(20000, sells)
+        self.assertNotIn(15000, sells)
 
-        self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({user_id}, "{addr1_1}", 10, "{name}", "BTC")
+        # most near test
+        sells.sort(key=lambda x: abs(amount_buy - x))
+        self.assertEqual(sells[0], 18000)
+
+        self.__insert_order("BTC", "EUR", amount_buy=1100, amount_sell=20000)
+        self.__insert_order("BTC", "EUR", amount_buy=1000, amount_sell=19000)
+        self.__insert_order("BTC", "EUR", amount_buy=900, amount_sell=18000)
+        self.__insert_order("BTC", "EUR", amount_buy=800, amount_sell=17000)
+        self.__insert_order("BTC", "EUR", amount_buy=700, amount_sell=16000)
+        self.__insert_order("BTC", "EUR", amount_buy=600, amount_sell=15000)
+
+        # tollerance test
+        tollerance = 0.1
+        amount_buy = 851
+        sells = self.db.select(f'''
+        SELECT OrdineID, `Quantita compro` FROM Ordine
+        WHERE `Ticker compro`="BTC" AND `Ticker vendo`="EUR" AND
+        `Quantita compro` BETWEEN {int(amount_buy * (1-tollerance))} AND {int(amount_buy * (1+tollerance))}
         ''')
 
-        addr1_1 = sha256(randbytes(20)).hexdigest()
+        sells = list(map(lambda x: x[1], sells))
+        self.assertNotIn(1100, sells)
+        self.assertNotIn(1000, sells)
+        self.assertIn(900, sells)
+        self.assertIn(800, sells)
+        self.assertNotIn(700, sells)
+        self.assertNotIn(600, sells)
 
-        date = datetime.now()
-        
-        # test the tollerance
-        self.db.insert_into(f"""
-        INSERT INTO Ordine
-        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
-        VALUES ('BTC', 'EUR', '20000', '1', '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
-        
-        """)
-        
+        # most near test
+        sells.sort(key=lambda x: abs(amount_buy - x))
+        self.assertEqual(sells[0], 900)
+
+
 
 if __name__ == "__main__":
     from sys import argv
