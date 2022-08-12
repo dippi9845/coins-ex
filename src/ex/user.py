@@ -43,10 +43,10 @@ class User:
         transaction_id = self.__database.insered_id()
         
         if wallet == True:
-            table = "contocorrente"
+            table = "wallet"
         
         elif wallet == False:
-            table = "wallet"
+            table = "contocorrente"
        
         # QUERY
         # TESTED
