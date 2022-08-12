@@ -149,7 +149,7 @@ class DatabseTest(unittest.TestCase):
         self.db.delete("DELETE FROM crypto WHERE Ticker = 'BTC'")
         self.assertTrue("BTC" in cryptos_ticker)
 
-    def test_create_default_wallet(self):
+    def test_create_default_contocorrente_and_wallet(self):
         name = self.__random_string()
         sede_operativa = self.__random_string()
         sede_legale = self.__random_string()
@@ -189,6 +189,12 @@ class DatabseTest(unittest.TestCase):
             VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 1000, "{name}", "EUR")
         ''')
 
+        self.db.insert_into(f'''
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 0, "{name}", "BTC")
+        ''')
+
+    #def test_make_transaction
 
 if __name__ == "__main__":
     from sys import argv
