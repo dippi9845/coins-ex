@@ -33,6 +33,7 @@ class User:
     def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> Any:
         date = datetime.now()
         # QUERY create a transaction
+        # TESTED
         self.__database.insert_into(f'''
             INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Ora, Data)
             VALUES
@@ -46,8 +47,12 @@ class User:
         
         elif wallet == False:
             table = "wallet"
-        
+       
+        # QUERY
+        # TESTED
         self.__database.update(f"UPDATE {table} SET Saldo = Saldo - {amount} WHERE Indirizzo='{address_out}'")
+        # QUERY
+        # TESTED
         self.__database.update(f"UPDATE {table} SET Saldo = Saldo + {amount} WHERE Indirizzo='{address_in}'")
 
         return transaction_id
