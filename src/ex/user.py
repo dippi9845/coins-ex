@@ -161,13 +161,16 @@ class User:
         '''
         request a report from the exchange
         '''
-        # QUERY gets all wallets 
+        # QUERY gets all wallets
+        # TESTED
         wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={self.__access_info}")
         self.__view.show_message("Wallets:")
 
         for wallet in wallets:
             self.__view.show_message(f"Address: {wallet[0]}, contains: {wallet[1]}, balance: {wallet[2]}")
 
+        # QUERY gets all fiat accounts
+        # TESTED
         accounts = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM contocorrente WHERE UserID={self.__access_info}")
         self.__view.show_message("Accounts:")
         
