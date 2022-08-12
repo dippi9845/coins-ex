@@ -4,7 +4,6 @@ from database import Database
 from hashlib import sha256
 from time import time
 from random import randbytes
-from enum import Enum
 from datetime import datetime
 
 class User:
