@@ -1,9 +1,10 @@
 from ex.database import Database, DatabaseConfig
 import unittest
 import string
-from random import choices, randint, sample, seed as set_seed
+from random import choices, randint, sample, seed as set_seed, randbytes
 from time import time
 from datetime import datetime
+from hashlib import sha256
 
 TestConfig = {
     'host' : DatabaseConfig['host'],
@@ -148,7 +149,45 @@ class DatabseTest(unittest.TestCase):
         self.db.delete("DELETE FROM crypto WHERE Ticker = 'BTC'")
         self.assertTrue("BTC" in cryptos_ticker)
 
-    def test_
+    def test_create_default_wallet(self):
+        name = self.__random_string()
+        sede_operativa = self.__random_string()
+        sede_legale = self.__random_string()
+        sitoweb = "https://" + self.__random_string()
+        nation = self.__random_string()
+        fondatore = self.__random_string()
+
+        self.db.insert_into(f'''
+        INSERT INTO exchange
+        (Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore)
+        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{nation}", "{sitoweb}", "{fondatore}")
+        ''')
+
+        name = self.__random_string()
+        surname = self.__random_string()
+        email = self.__random_string()
+        password = self.__random_code()
+        fiscal_code = self.__random_code()
+        nationality = self.__random_string()
+        telephone = self.__random_nums()
+        residence = self.__random_string()
+        bith_day = self.__random_date()
+
+        self.db.insert_into(f'''
+        INSERT INTO utente
+        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        ''')
+
+        user_id = self.db.insered_id()
+
+        to_hash = str(user_id).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)
+        # QUERY create an istance of contocorrente
+        
+        self.db.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 1000, "{name}", "EUR")
+        ''')
 
 
 if __name__ == "__main__":
