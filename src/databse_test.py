@@ -359,10 +359,7 @@ class DatabseTest(unittest.TestCase):
         self.assertTrue(accounts[1][1] == balance4 or accounts[1][1] == balance3, "wrong balance")
         self.assertEqual(accounts[1][2], "EUR", "wrong ticker")
 
-    def test_buy(self):
-        pass
-    
-    def test_sell(self):
+    def test_sell_and_buy(self):
         set_seed(time())
 
         user1 = self.__random_int()
@@ -452,7 +449,8 @@ class DatabseTest(unittest.TestCase):
         
         self.db.execute("DELETE FROM Ordine")
         ## inverted
-
+        set_seed(time())
+        
         user1 = self.__random_int()
         user2 = self.__random_int()
         
