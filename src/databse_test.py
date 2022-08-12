@@ -30,6 +30,9 @@ class DatabseTest(unittest.TestCase):
     def __random_nums(self) -> str:
         return "".join(choices(string.digits, k=randint(5, 9)))
     
+    def __random_int(self) -> int:
+        return randint(1, 9E8)
+    
     def __random_date(self, sep="-", seed=31415) -> str:
         set_seed(seed)
         d = randint(1, int(time()))
@@ -304,7 +307,30 @@ class DatabseTest(unittest.TestCase):
         pass
     
     def test_sell(self):
-        pass
+        set_seed(time())
+
+        user_id = int(self.__random_nums())
+
+        name = self.__random_string()
+        addr1_1 = sha256(randbytes(20)).hexdigest()
+
+        self.db.insert_into(f'''
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{addr1_1}", 10, "{name}", "BTC")
+        ''')
+
+        addr1_1 = sha256(randbytes(20)).hexdigest()
+
+        date = datetime.now()
+        
+        # test the tollerance
+        self.db.insert_into(f"""
+        INSERT INTO Ordine
+        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
+        VALUES ('BTC', 'EUR', '20000', '1', '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+        
+        """)
+        
 
 if __name__ == "__main__":
     from sys import argv
