@@ -137,8 +137,8 @@ class User:
             # QUERY create an istance of contocorrente
             
             self.__database.insert_into(f'''
-                INSERT INTO contocorrente (Indirizzo, Saldo, Nome, Ticker)
-                VALUES ("{sha256(to_hash).hexdigest()}", {amount}, "{exchange_name}", "{fiat_ticker}")
+                INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+                VALUES ({self.__access_info}, "{sha256(to_hash).hexdigest()}", {amount}, "{exchange_name}", "{fiat_ticker}")
             ''')
     
     def _report(self):
