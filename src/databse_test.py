@@ -230,6 +230,76 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(balance1, 1950, "balance is wrong")
         self.assertEqual(balance2, 50, "balance is wrong")
 
+    def test_report(self):
+        set_seed(time())
+        name = self.__random_string()
+        surname = self.__random_string()
+        email = self.__random_string()
+        password = self.__random_code()
+        fiscal_code = self.__random_code()
+        nationality = self.__random_string()
+        telephone = self.__random_nums()
+        residence = self.__random_string()
+        bith_day = self.__random_date()
+
+        self.db.insert_into(f'''
+        INSERT INTO utente
+        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        ''')
+
+        user_id = self.db.insered_id()
+
+        # exchange name
+        name = self.__random_string()
+
+        balance1 = int(self.__random_nums())
+        balance2 = int(self.__random_nums())
+        balance3 = int(self.__random_nums())
+        balance4 = int(self.__random_nums())
+        
+        addr1 = sha256(randbytes(20)).hexdigest()
+        addr2 = sha256(randbytes(20)).hexdigest()
+        addr3 = sha256(randbytes(20)).hexdigest()
+        addr4 = sha256(randbytes(20)).hexdigest()
+
+
+        self.db.insert_into(f'''
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{addr1}", {balance1}, "{name}", "BTC")
+        ''')
+
+        self.db.insert_into(f'''
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{addr2}", {balance2}, "{name}", "BTC")
+        ''')
+
+        self.db.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{addr3}", {balance3}, "{name}", "EUR")
+        ''')
+
+        self.db.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{addr4}", {balance4}, "{name}", "EUR")
+        ''')
+
+        wallets = self.db.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={user_id}")
+        self.assertTrue(wallets[0][0] == addr1 or wallets[0][0] == addr2, "wrong address")
+        self.assertTrue(wallets[0][1] == balance1 or wallets[0][1] == balance2, "wrong balance")
+        self.assertEqual(wallets[0][2], "BTC", "wrong ticker")
+        self.assertTrue(wallets[1][0] == addr2 or wallets[1][0] == addr1, "wrong address")
+        self.assertTrue(wallets[1][1] == balance2 or wallets[1][1] == balance1, "wrong balance")
+        self.assertEqual(wallets[1][2], "BTC", "wrong ticker")
+
+        accounts = self.db.select(f"SELECT Indirizzo, Saldo, Ticker FROM contocorrente WHERE UserID={user_id}")
+        self.assertTrue(accounts[0][0] == addr3 or accounts[0][0] == addr4, "wrong address")
+        self.assertTrue(accounts[0][1] == balance3 or accounts[0][1] == balance4, "wrong balance")
+        self.assertEqual(accounts[0][2], "EUR", "wrong ticker")
+        self.assertTrue(accounts[1][0] == addr4 or accounts[1][0] == addr3, "wrong address")
+        self.assertTrue(accounts[1][1] == balance4 or accounts[1][1] == balance3, "wrong balance")
+        self.assertEqual(accounts[1][2], "EUR", "wrong ticker")
+
 
 
 if __name__ == "__main__":
