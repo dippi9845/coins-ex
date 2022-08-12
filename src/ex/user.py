@@ -30,7 +30,7 @@ class User:
         self.__registered_exchanges = []
         self.__database = Database()
 
-    def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int) -> Any:
+    def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> Any:
         date = datetime.now()
         # QUERY create a transaction
         self.__database.insert_into(f'''
@@ -39,7 +39,18 @@ class User:
             ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
         ''')
 
-        return self.__database.insered_id()
+        transaction_id = self.__database.insered_id()
+        
+        if wallet == True:
+            table = "contocorrente"
+        
+        elif wallet == False:
+            table = "wallet"
+        
+        self.__database.update(f"UPDATE {table} SET Saldo = Saldo - {amount} WHERE Indirizzo='{address_out}'")
+        self.__database.update(f"UPDATE {table} SET Saldo = Saldo + {amount} WHERE Indirizzo='{address_in}'")
+
+        return transaction_id
 
     def __is_crypto_ticker(self, ticker : str) -> bool:
         # QUERY
