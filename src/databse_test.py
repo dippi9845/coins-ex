@@ -77,7 +77,7 @@ class DatabseTest(unittest.TestCase):
     def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> int:
         date = datetime.now()
         self.db.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Ora, Data)
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
             VALUES
             ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
         ''')
@@ -558,8 +558,11 @@ class DatabseTest(unittest.TestCase):
 
     def test_medium_price(self):
         self.db.insert_into("INSERT INTO crypto VALUES ('Bitcoin', 'BTC')")
-        order = self.__insert_order("BTC", "EUR")
-        self.__complete_order(order)
+        
+        for _ in range(10):
+            order = self.__insert_order("BTC", "EUR")
+            self.__complete_order(order)
+        
         self.db.delete("DELETE FROM crypto WHERE Ticker = 'BTC'")
 
 
