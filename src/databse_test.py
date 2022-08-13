@@ -235,10 +235,8 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(check_name, name)
 
     def test_is_crypto_ticker(self):
-        self.db.insert_into("INSERT INTO crypto VALUES ('Bitcoin', 'BTC')")
         cryptos_ticker = self.db.select("SELECT Ticker FROM crypto")[0]
-        self.db.delete("DELETE FROM crypto WHERE Ticker = 'BTC'")
-        self.assertTrue("BTC" in cryptos_ticker)
+        self.assertIn("BTC", cryptos_ticker)
 
     def test_create_default_contocorrente_and_wallet(self):
         name = self.__random_string()
@@ -308,7 +306,7 @@ class DatabseTest(unittest.TestCase):
         date = datetime.now()
         # QUERY create a transaction
         self.db.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Ora, Data)
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
             VALUES
             ('{addr1}', '{addr2}', 'EUR', 950, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
         ''')
@@ -557,13 +555,44 @@ class DatabseTest(unittest.TestCase):
         self.db.execute("DELETE FROM Ordine")
 
     def test_medium_price(self):
-        self.db.insert_into("INSERT INTO crypto VALUES ('Bitcoin', 'BTC')")
+        self.db.delete("DELETE FROM scambio")
         
+        cry = []
+        fiat = []
         for _ in range(10):
-            order = self.__insert_order("BTC", "EUR")
+            c = self.__random_int()
+            f = self.__random_int()
+            
+            cry.append(c)
+            fiat.append(f)
+
+            order = self.__insert_order("BTC", "EUR", amount_buy=c, amount_sell=f)
             self.__complete_order(order)
         
-        self.db.delete("DELETE FROM crypto WHERE Ticker = 'BTC'")
+        rtr = self.db.select(f"""
+            SELECT t1.Quantita as crypto, t2.Quantita as fiat
+            FROM scambio s
+            LEFT JOIN transazione t1 ON s.`Transazione crypto` = t1.ID
+            LEFT JOIN transazione t2 ON s.`Transazione fiat` = t2.ID
+            WHERE t1.Ticker="BTC" AND t2.Ticker="EUR";
+        """)
+
+        numerator = 0
+
+        for i, j in zip(cry, fiat):
+            numerator += i * j
+
+        expected_medium = numerator / sum(fiat)
+
+        numerator = 0
+
+        for i, j in rtr:
+            numerator += i * j
+        
+        actual = numerator/sum(map(lambda x: x[1], rtr))
+
+        self.assertEqual(expected_medium, actual)
+        self.db.delete("DELETE FROM scambio")
 
 
 if __name__ == "__main__":
