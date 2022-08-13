@@ -55,11 +55,11 @@ class Database:
 
     def get_countervalue_by_date(self, ticker_fiat : str, ticker_crypto : str, date : str):
         self.select(f'''
-            SELECT C.Quantita, F.Quantita
-            FROM Transazioni C, Transazioni F
-            WHERE C.data = {date} AND C.Ticker = '{ticker_crypto}' 
-            INNER JOIN scambi ON scambi.`Transazione crypto` = C.ID
-            INNER JOIN scambi ON scambi.`Transazione fiat` = F.ID
+            SELECT t1.Quantita as crypto, t2.Quantita as fiat
+            FROM scambio s
+            LEFT JOIN transazione t1 ON s.`Transazione crypto` = t1.ID
+            LEFT JOIN transazione t2 ON s.`Transazione fiat` = t2.ID
+            WHERE t1.Data="{date}" AND t1.Ticker="{ticker_crypto}" AND t2.Ticker="{ticker_fiat}";
         ''')
 
 
