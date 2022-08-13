@@ -107,8 +107,8 @@ CREATE TABLE Transazione (
 	`Indirizzo Uscita` VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
-	Ora DATE NOT NULL,
-	Data TIME NOT NULL,
+	Ora TIME NOT NULL,
+	Data DATE NOT NULL,
 	PRIMARY KEY (ID));
 
 DROP TABLE IF EXISTS Transazione_fisica;
@@ -153,6 +153,11 @@ INSERT INTO fiat (Nome, Ticker)
 VALUES
 ("Euro, european", "EUR"),
 ("US dollar", "USD");
+
+INSERT INTO crypto (Nome, Ticker)
+VALUES
+("Bitcoin", "BTC"),
+("Etherium", "ETH");
 
 -- ConstraINTs Section
 -- ___________________
