@@ -54,13 +54,25 @@ class Database:
     '''
 
     def get_countervalue_by_date(self, ticker_fiat : str, ticker_crypto : str, date : str):
-        self.select(f'''
+        return self.get_countervalue_by_time(ticker_fiat, ticker_crypto, date, "00:00:00", "23:59:59")
+    
+    def get_countervalue_by_time(self, ticker_fiat : str, ticker_crypto : str, date : str, time_start : str, time_end : str):
+        rtr = self.select(f'''
             SELECT t1.Quantita as crypto, t2.Quantita as fiat
             FROM scambio s
             LEFT JOIN transazione t1 ON s.`Transazione crypto` = t1.ID
             LEFT JOIN transazione t2 ON s.`Transazione fiat` = t2.ID
-            WHERE t1.Data="{date}" AND t1.Ticker="{ticker_crypto}" AND t2.Ticker="{ticker_fiat}";
+            WHERE t1.Data="{date}" AND t1.Ticker="{ticker_crypto}" AND t2.Ticker="{ticker_fiat}" AND
+            t1.Ora BETWEEN "{time_start}" AND "{time_end}";
         ''')
+        numerator = 0
+
+        for i, j in rtr:
+            numerator += i * j
+        
+        return numerator/sum(map(lambda x: x[1], rtr))
+        
+
 
 
 if __name__ == "__main__":
