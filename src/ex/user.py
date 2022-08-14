@@ -303,11 +303,19 @@ class User:
                 VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
 
-    def _withdraw(self, atm_id : str):
+    def _withdraw(self, atm_id : str, crypto_ticker : str, fiat_ticker : str, amount_fiat : int):
         '''
         withdraw fiat money 
         '''
-        pass
+        now = datetime.now()
+        spread = self.__database.select(f"SELECT spread FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0]
+        countervalue = self.__database.get_countervalue_by_time(fiat_ticker, crypto_ticker, f"{now.year}-{now.month}-{now.day}", "00:00:00", f"{now.hour}:{now.minute}:{now.second}")
+        excahnge_price = countervalue - spread
+        crypto_amount = amount_fiat/excahnge_price
+
+        self.__make_transaction(atm_addr, user_addr, crypto_ticker, crypto_amount,wallet=True)
+
+        # decrease the amount of fiat money in the atm
 
     def _deposit(self):
         '''
