@@ -282,6 +282,11 @@ class DatabseTest(unittest.TestCase):
             INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 0, "{name}", "BTC")
         ''')
+        
+        self.db.insert_into(f'''
+            INSERT INTO wallet (ATM_ID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({self.__random_int()}, "{sha256(self.__random_string().encode()).hexdigest()}", 0, "{name}", "BTC")
+        ''')
 
     def test_make_transaction(self):
         set_seed(time())
