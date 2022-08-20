@@ -43,7 +43,7 @@ class User:
         transaction_id = self.__database.insered_id()
         
         if wallet == True:
-            table = "wallet"
+            table = "wallet_utente"
         
         elif wallet == False:
             table = "contocorrente"
@@ -163,7 +163,7 @@ class User:
         '''
         # QUERY gets all wallets
         # TESTED
-        wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={self.__access_info}")
+        wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet_utente WHERE UserID={self.__access_info}")
         self.__view.show_message("Wallets:")
 
         for wallet in wallets:

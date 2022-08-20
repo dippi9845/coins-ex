@@ -85,7 +85,7 @@ class DatabseTest(unittest.TestCase):
         transaction_id = self.db.insered_id()
         
         if wallet == True:
-            table = "wallet"
+            table = "wallet_utente"
             
         
         elif wallet == False:
@@ -279,12 +279,12 @@ class DatabseTest(unittest.TestCase):
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 0, "{name}", "BTC")
         ''')
         
         self.db.insert_into(f'''
-            INSERT INTO wallet (ATM_ID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_atm (ATM_ID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({self.__random_int()}, "{sha256(self.__random_string().encode()).hexdigest()}", 0, "{name}", "BTC")
         ''')
 
@@ -359,12 +359,12 @@ class DatabseTest(unittest.TestCase):
 
 
         self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user_id}, "{addr1}", {balance1}, "{name}", "BTC")
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user_id}, "{addr2}", {balance2}, "{name}", "BTC")
         ''')
 
@@ -378,7 +378,7 @@ class DatabseTest(unittest.TestCase):
             VALUES ({user_id}, "{addr4}", {balance4}, "{name}", "EUR")
         ''')
 
-        wallets = self.db.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={user_id}")
+        wallets = self.db.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet_utente WHERE UserID={user_id}")
         self.assertTrue(wallets[0][0] == addr1 or wallets[0][0] == addr2, "wrong address")
         self.assertTrue(wallets[0][1] == balance1 or wallets[0][1] == balance2, "wrong balance")
         self.assertEqual(wallets[0][2], "BTC", "wrong ticker")
@@ -413,12 +413,12 @@ class DatabseTest(unittest.TestCase):
         
 
         self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user1}, "{btc_addr1}", {start_amount_btc1}, "{self.__random_string()}", "BTC")
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user2}, "{btc_addr2}", {start_amount_btc2}, "{self.__random_string()}", "BTC")
         ''')
         
@@ -476,8 +476,8 @@ class DatabseTest(unittest.TestCase):
 
         # ricevo btc da lui
         trans_cry =self.__make_transaction(btc_addr1, btc_addr2, "BTC", 1, wallet=True)
-        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr1}'")[0][0]
-        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr2}'")[0][0]
+        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr1}'")[0][0]
+        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr2}'")[0][0]
         
         self.assertEqual(final_btc1, start_amount_btc1 + 1)
         self.assertEqual(final_btc2, start_amount_btc2 - 1)
@@ -504,12 +504,12 @@ class DatabseTest(unittest.TestCase):
         
 
         self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user1}, "{btc_addr1}", {start_amount_btc1}, "{self.__random_string()}", "BTC")
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user2}, "{btc_addr2}", {start_amount_btc2}, "{self.__random_string()}", "BTC")
         ''')
         
@@ -554,8 +554,8 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(orders[0][2], eur_addr2)
 
         self.__make_transaction(btc_addr2, btc_addr1, "BTC", orders[0][1], wallet=True)
-        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr1}'")[0][0]
-        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr2}'")[0][0]
+        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr1}'")[0][0]
+        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr2}'")[0][0]
 
         self.db.execute("DELETE FROM Ordine")
 
