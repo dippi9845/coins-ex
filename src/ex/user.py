@@ -303,7 +303,7 @@ class User:
                 VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
 
-    def _withdraw(self, atm_id : str, crypto_ticker : str, fiat_ticker : str, amount_fiat : int):
+    def _withdraw(self, atm_id : str, crypto_ticker : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
         withdraw fiat money 
         '''
@@ -313,9 +313,28 @@ class User:
         excahnge_price = countervalue - spread
         crypto_amount = amount_fiat/excahnge_price
 
-        self.__make_transaction(atm_addr, user_addr, crypto_ticker, crypto_amount,wallet=True)
+        atm_addr = self.__database.select(f"SELECT Indirizzo FROM wallet_atm WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0]
+        
+        date = datetime.now()
+        
+        # QUERY create a transaction
+        # TESTED
+        self.__database.insert_into(f'''
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
+            VALUES
+            ('{atm_addr}', '{user_addr}', '{user_addr}', {user_addr}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+        ''')
+        
+        # QUERY
+        # TESTED
+        self.__database.update(f"UPDATE wallet_utente SET Saldo = Saldo - {crypto_amount} WHERE Indirizzo='{user_addr}'")
+        # QUERY
+        # TESTED
+        self.__database.update(f"UPDATE wallet_atm SET Saldo = Saldo + {crypto_amount} WHERE Indirizzo='{atm_addr}'")
 
         # decrease the amount of fiat money in the atm
+        
+        
 
     def _deposit(self):
         '''
