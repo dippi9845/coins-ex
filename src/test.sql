@@ -21,6 +21,7 @@ GRANT ALL PRIVILEGES ON exchanges_tests . *  TO 'db-project'@'localhost';
 -- _____________
 DROP TABLE IF EXISTS ATM;
 CREATE TABLE ATM (
+	exchange_name VARCHAR(255) NOT NULL,
 	Via VARCHAR(255) NOT NULL,
 	Citta VARCHAR(255) NOT NULL,
 	Provincia VARCHAR(255) NOT NULL,
