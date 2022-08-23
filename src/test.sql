@@ -123,6 +123,7 @@ CREATE TABLE Transazione (
 
 DROP TABLE IF EXISTS Transazione_fisica;
 CREATE TABLE Transazione_fisica (
+	TransazioneID INT NOT NULL, 
 	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
 	Quantita INT NOT NULL CHECK (Quantita>0),
 	Spread INT NOT NULL CHECK (Spread > 0),
@@ -156,6 +157,13 @@ DROP TABLE IF EXISTS scambio;
 CREATE TABLE scambio (
 	`Transazione crypto` INT NOT NULL,
 	`Transazione fiat` INT NOT NULL
+);
+
+DROP TABLE IF EXISTS contante;
+CREATE TABLE contante (
+	`Transazione fiat` INT NOT NULL,
+	`Codice ATM` VARCHAR(255) NOT NULL,
+	Quantita INT NOT NULL CHECK (Quantita > 0)
 );
 
 -- Instances needed section
