@@ -628,6 +628,7 @@ class DatabseTest(unittest.TestCase):
 
     def test_create_atm(self):
         atm_id = self.__create_atm()
+        self.fail("need to check values")
 
     def test_withdraw(self):
         atm_id = self.__create_atm()
@@ -635,7 +636,7 @@ class DatabseTest(unittest.TestCase):
         crypto_ticker = "BTC"
         user_addr = self.__ramdom_hash()
         amount_fiat = 500
-        date = now = datetime.now()
+        now = datetime.now()
         
         # riempire di scambi
         
@@ -667,6 +668,8 @@ class DatabseTest(unittest.TestCase):
         # decrease the amount of fiat money in the atm
         self.db.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
         self.db.insert_into(f"INSERT INTO transazione_fisica (TransazioneID, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
+        self.fail("need to check values")
+        
 
 if __name__ == "__main__":
     from sys import argv
