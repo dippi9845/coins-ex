@@ -108,8 +108,8 @@ CREATE TABLE Ordine (
 	`Quantita vendo` INT NOT NULL CHECK(`Quantita vendo` > 0),
 	`Indirizzo compro` VARCHAR(255) NOT NULL,
 	`Indirizzo vendo` VARCHAR(255) NOT NULL,
-	Data DATE NOT NULL,
-	Ora TIME NOT NULL,
+	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
+	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
 	PRIMARY KEY (OrdineID));
 
 DROP TABLE IF EXISTS Transazione;
@@ -119,8 +119,8 @@ CREATE TABLE Transazione (
 	`Indirizzo Uscita` VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
-	Ora TIME NOT NULL,
-	Data DATE NOT NULL,
+	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
+	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
 	PRIMARY KEY (ID));
 
 DROP TABLE IF EXISTS Transazione_fisica;
@@ -131,8 +131,8 @@ CREATE TABLE Transazione_fisica (
 	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Spread INT NOT NULL CHECK (Spread > 0),
-	Data DATE NOT NULL,
-	Ora TIME NOT NULL,
+	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
+	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
 	PRIMARY KEY (ID)
 );
 
