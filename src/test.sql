@@ -29,7 +29,8 @@ CREATE TABLE ATM (
 	Modello VARCHAR(255) NOT NULL,
 	`Versione Software` VARCHAR(255) NOT NULL,
 	`Spread attuale` INT NOT NULL CHECK (`Spread attuale` > 0),
-	PRIMARY KEY (`Codice Icentificativo`));
+	PRIMARY KEY (`Codice Icentificativo`)
+);
 
 DROP TABLE IF EXISTS ContoCorrente;
 CREATE TABLE ContoCorrente (
@@ -53,7 +54,7 @@ CREATE TABLE Wallet_Utente (
 
 DROP TABLE IF EXISTS Wallet_ATM;
 CREATE TABLE Wallet_ATM (
-	ATM_ID INT NOT NULL,
+	ATM_ID VARCHAR(255) NOT NULL,
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo INT NOT NULL CHECK(Saldo >= 0),
 	Nome VARCHAR(255) NOT NULL,
@@ -124,13 +125,16 @@ CREATE TABLE Transazione (
 
 DROP TABLE IF EXISTS Transazione_fisica;
 CREATE TABLE Transazione_fisica (
-	TransazioneID INT NOT NULL, 
+	ID INT AUTO_INCREMENT,
+	TransazioneID INT NOT NULL,
+	`Ticker fiat` VARCHAR(255) NOT NULL,
 	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
-	Quantita INT NOT NULL CHECK (Quantita>0),
+	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Spread INT NOT NULL CHECK (Spread > 0),
 	Data DATE NOT NULL,
 	Ora TIME NOT NULL,
-	PRIMARY KEY (Data, Ora));
+	PRIMARY KEY (ID)
+);
 
 DROP TABLE IF EXISTS Utente;
 CREATE TABLE Utente (
@@ -162,9 +166,9 @@ CREATE TABLE scambio (
 
 DROP TABLE IF EXISTS contante;
 CREATE TABLE contante (
-	`Transazione fiat` INT NOT NULL,
+	`Ticker fiat` VARCHAR(255) NOT NULL,
 	`Codice ATM` VARCHAR(255) NOT NULL,
-	Quantita INT NOT NULL CHECK (Quantita > 0)
+	Quantita INT NOT NULL CHECK (Quantita >= 0)
 );
 
 -- Instances needed section
