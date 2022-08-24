@@ -336,12 +336,11 @@ class DatabseTest(unittest.TestCase):
             VALUES ({user_id}, "{addr2}", 1000, "{name}", "EUR")
         ''')
 
-        date = datetime.now()
         # QUERY create a transaction
         self.db.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
             VALUES
-            ('{addr1}', '{addr2}', 'EUR', 950, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+            ('{addr1}', '{addr2}', 'EUR', 950)
         ''')
 
         self.db.update(f"UPDATE contocorrente SET Saldo = Saldo - 950 WHERE Indirizzo='{addr2}'")
@@ -651,9 +650,9 @@ class DatabseTest(unittest.TestCase):
         # QUERY create a transaction
         # TESTED
         self.db.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
             VALUES
-            ('{atm_addr}', '{user_addr}', '{crypto_ticker}', {crypto_amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+            ('{atm_addr}', '{user_addr}', '{crypto_ticker}', {crypto_amount})
         ''')
         
         trans_id = self.db.insered_id()
@@ -667,7 +666,7 @@ class DatabseTest(unittest.TestCase):
 
         # decrease the amount of fiat money in the atm
         self.db.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
-        self.db.insert_into(f"INSERT INTO transazione_fisica (TransazioneID, `Ticker fiat`, `Cambio attuale`, Quantita, Spread, Data, Ora) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100}, CURRENT_DATE, CURRENT_TIMESTAMP)")
+        self.db.insert_into(f"INSERT INTO transazione_fisica (TransazioneID, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
 
 if __name__ == "__main__":
     from sys import argv
