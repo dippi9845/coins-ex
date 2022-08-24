@@ -43,6 +43,9 @@ class DatabseTest(unittest.TestCase):
         d = randint(1, int(time()))
         return datetime.fromtimestamp(d).strftime('%H' + sep + '%M' + sep + '%S')
 
+    def __ramdom_hash(self, num_bytes=20) -> str:
+        return sha256(randbytes(num_bytes)).hexdigest()
+
     def __insert_order(self, ticker_buy : str, ticker_sell : str, amount_buy : int=None, amount_sell : int=None, user_id : int=None, address_in : str=None, address_out : str=None, date : str=None, rnd_time : str=None) -> int:
         
         if amount_buy is None:
@@ -125,6 +128,31 @@ class DatabseTest(unittest.TestCase):
         
         self.db.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
         self.db.delete(f"DELETE FROM ordine WHERE OrdineID={order_id}")
+
+    def __create_atm(self, fiat_ticker="EUR", fiat_amount=1000, crypto_ticker="BTC", crypto_amount=10000, spread=0.1, excahnge_name=None) -> int:
+        if excahnge_name is None:
+            excahnge_name = self.__random_string()
+        
+        atm_id = self.__random_code()
+        self.db.insert_into(f"""
+        INSERT INTO ATM 
+        (exchange_name, Via, Citta, Provincia, `Codice Icentificativo`, Modello, `Versione Software`, `Spread attuale`)
+        VALUES
+        ('{excahnge_name}', '{self.__random_string()}', '{self.__random_string()}', '{self.__random_string()}', '{atm_id}',
+        '{self.__random_string()}', '{self.__random_string()}', {spread * 100})
+        """)
+        
+        self.db.insert_into(f"""
+        INSERT INTO contante (`Ticker fiat`, `Codice ATM`, Quantita)
+        VALUES ('{fiat_ticker}', '{atm_id}', {fiat_amount})
+        """)
+        
+        self.db.insert_into(f"""
+        INSERT INTO Wallet_ATM (ATM_ID, Indirizzo, Saldo, Nome, Ticker)
+        VALUES ('{atm_id}', '{self.__random_string()}', {crypto_amount}, '{excahnge_name}', '{crypto_ticker}')
+        """)
+        
+        return atm_id
 
 
     def test_create_user(self):
@@ -599,6 +627,47 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(expected_medium, actual)
         self.db.delete("DELETE FROM scambio")
 
+    def test_create_atm(self):
+        atm_id = self.__create_atm()
+
+    def test_withdraw(self):
+        atm_id = self.__create_atm()
+        fiat_ticker = "EUR"
+        crypto_ticker = "BTC"
+        user_addr = self.__ramdom_hash()
+        amount_fiat = 500
+        date = now = datetime.now()
+        
+        # riempire di scambi
+        
+        spread = self.db.select(f"SELECT `Spread attuale` FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
+        spread /= 100
+        countervalue = self.db.get_countervalue_by_time(fiat_ticker, crypto_ticker, f"{now.year}-{now.month}-{now.day}", "00:00:00", f"{now.hour}:{now.minute}:{now.second}")
+        excahnge_price = countervalue - spread
+        crypto_amount = int(amount_fiat/excahnge_price)
+
+        atm_addr = self.db.select(f"SELECT Indirizzo FROM wallet_atm WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
+        
+        # QUERY create a transaction
+        # TESTED
+        self.db.insert_into(f'''
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
+            VALUES
+            ('{atm_addr}', '{user_addr}', '{crypto_ticker}', {crypto_amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+        ''')
+        
+        trans_id = self.db.insered_id()
+        
+        # QUERY
+        # TESTED
+        self.db.update(f"UPDATE wallet_utente SET Saldo = Saldo - {crypto_amount} WHERE Indirizzo='{user_addr}'")
+        # QUERY
+        # TESTED
+        self.db.update(f"UPDATE wallet_atm SET Saldo = Saldo + {crypto_amount} WHERE Indirizzo='{atm_addr}'")
+
+        # decrease the amount of fiat money in the atm
+        self.db.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
+        self.db.insert_into(f"INSERT INTO transazione_fisica (TransazioneID, `Ticker fiat`, `Cambio attuale`, Quantita, Spread, Data, Ora) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100}, CURRENT_DATE, CURRENT_TIMESTAMP)")
 
 if __name__ == "__main__":
     from sys import argv
