@@ -1,10 +1,12 @@
-from typing import Any
+from typing import Any, Callable
 from view import View, TerminalView
 from database import Database
 from hashlib import sha256
 from time import time
 from random import randbytes
 from datetime import datetime
+from threading import Thread
+from time import sleep
 
 class User:
 
@@ -377,6 +379,72 @@ class User:
         '''
         self.__access_info = None
         self.__database.close()
+    
+
+class FakeUser(Thread):
+    
+    BUY_STATE = "Buy"
+    WAIT_BUY_STATE = "Wait buy"
+    SELL_STATE = "Sell"
+    WAIT_SELL_STATE = "Wait sell"
+    
+    def __init__(self, start_time : int, fluttuation_price : Callable, noise : Callable, initail_state : str,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=0, initial_amount : int=1000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
+        self.fluttuation_price = fluttuation_price
+        self.noise = noise
+        self.state = initail_state
+        self.start_time = start_time
+        
+        self.reload_amount = reload_amount
+        self.initial_amount = initial_amount
+        self.inital_crypto = inital_crypto
+        self.crypto_ticker = crypto_ticker
+        self.fiat_ticker = fiat_ticker
+        self.polling_rate = polling_rate
+        
+        self.is_running = True
+        
+        self.states = {
+                self.BUY_STATE : self.place_buy,
+                self.WAIT_BUY_STATE : self.wait_buy,
+                self.WAIT_SELL_STATE : self.wait_sell,
+                self.SELL_STATE : self.place_sell
+            }
+    
+    def place_buy(self) -> None:
+        
+        self.state = self.WAIT_BUY_STATE
+    
+    
+    def wait_buy(self) -> None:
+        
+        while xxxx:
+            
+            sleep(self.polling_rate)
+        
+        self.state = self.SELL_STATE
+    
+    
+    def wait_sell(self) -> None:
+        
+        while xxxx:
+            
+            sleep(self.polling_rate)
+        
+        self.state = self.BUY_STATE
+    
+    
+    def place_sell(self) -> None:
+        
+        self.state = self.WAIT_SELL_STATE
+    
+    
+    def stop(self) -> None:
+        
+        self.is_running = False
+    
+    def run(self):
+        while self.is_running:
+            self.states[self.state]()
 
 if __name__ == "__main__":
     user = User(TerminalView())
