@@ -124,7 +124,7 @@ CREATE TABLE Transazione (
 DROP TABLE IF EXISTS Transazione_fisica;
 CREATE TABLE Transazione_fisica (
 	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
-	Quantita INT NOT NULL CHECK (Quantita>0),
+	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Spread INT NOT NULL CHECK (Spread > 0),
 	Data DATE NOT NULL,
 	Ora TIME NOT NULL,
