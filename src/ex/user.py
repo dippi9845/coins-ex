@@ -404,13 +404,15 @@ class FakeUser(Thread):
         self.is_running = True
         
         self.states = {
-                self.BUY_STATE : self.place_buy,
-                self.WAIT_BUY_STATE : self.wait_buy,
-                self.WAIT_SELL_STATE : self.wait_sell,
-                self.SELL_STATE : self.place_sell
-            }
+            self.BUY_STATE : self.place_buy,
+            self.WAIT_BUY_STATE : self.wait_buy,
+            self.WAIT_SELL_STATE : self.wait_sell,
+            self.SELL_STATE : self.place_sell
+        }
     
     def place_buy(self) -> None:
+        price = self.noise(self.fluttuation_price(int(time()) - self.start_time))
+        # metti price nel database
         
         self.state = self.WAIT_BUY_STATE
     
@@ -434,6 +436,8 @@ class FakeUser(Thread):
     
     
     def place_sell(self) -> None:
+        price = self.noise(self.fluttuation_price(int(time()) - self.start_time))
+        # metti price nel database
         
         self.state = self.WAIT_SELL_STATE
     
