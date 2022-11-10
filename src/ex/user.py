@@ -7,6 +7,8 @@ from random import randbytes
 from datetime import datetime
 from threading import Thread
 from time import sleep
+from random import choices, randint, sample, seed as set_seed, randbytes
+import string
 
 class User:
 
@@ -388,13 +390,33 @@ class FakeUser(Thread):
     SELL_STATE = "Sell"
     WAIT_SELL_STATE = "Wait sell"
     
-    def __init__(self, start_time : int, fluttuation_price : Callable, noise : Callable, initail_state : str,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=0, initial_amount : int=1000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
+    
+    def __random_string(self) -> str:
+        set_seed(time())
+        return "".join(choices(string.ascii_letters, k=randint(5, 10)))
+
+    
+    def __random_date(self, sep="-", seed=31415) -> str:
+        set_seed(seed)
+        d = randint(1, int(time()))
+        return datetime.fromtimestamp(d).strftime('%Y' + sep + '%m' + sep + '%d')
+    
+    
+    def __random_code(self) -> str:
+        return "".join(sample(choices(string.ascii_letters, k=randint(5, 10)) + choices(string.digits, k=randint(5, 10)), k=10))
+    
+    
+    def __random_nums(self) -> str:
+        return "".join(choices(string.digits, k=randint(5, 9)))
+
+    
+    def __init__(self, start_time : int, fluttuation_price : Callable, noise : Callable, initail_state : str,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=0, initial_amount : int=1000000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
         self.fluttuation_price = fluttuation_price
         self.noise = noise
         self.state = initail_state
         self.start_time = start_time
         
-        self.reload_amount = reload_amount
+        self.reload_amount = reload_amount # spero di non dover usare sta cosa (quantità di soldi che viene ricaricata ogni volta che finiscono)
         self.initial_amount = initial_amount
         self.inital_crypto = inital_crypto
         self.crypto_ticker = crypto_ticker
@@ -409,10 +431,60 @@ class FakeUser(Thread):
             self.WAIT_SELL_STATE : self.wait_sell,
             self.SELL_STATE : self.place_sell
         }
+        
+        self.__database = Database()
+        
+        name = self.__random_string()
+        surname = self.__random_string()
+        email = self.__random_string()
+        password = self.__random_code()
+        fiscal_code = self.__random_code()
+        nationality = self.__random_string()
+        telephone = self.__random_nums()
+        residence = self.__random_string()
+        bith_day = self.__random_date()
+        
+        self.__database.insert_into(f'''
+        INSERT INTO utente
+        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        ''')
+        
+        self.my_id = self.__database.insered_id()
+        
+        # nome dell'exchange ceh dovrà essere fornito
+        
+        self.fiat_address = sha256(str(self.my_id).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)).hexdigest()
+        self.crypto_address = sha256(str(self.my_id).encode() + b"IfdsgD" + str(int(time())).encode() + b"RNfdsgsdD" + randbytes(10)).hexdigest()
+        
+        self.__database.insert_into(f'''
+            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({self.my_id}, "{self.crypto_address}", 0, "Exchange name", "{crypto_ticker}")
+        ''')
+        
+        self.__database.insert_into(f'''
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({self.my_id}, "{self.fiat_address}", {self.initial_amount}, "Exchange name", "{fiat_ticker}")
+        ''')
+
     
     def place_buy(self) -> None:
-        price = self.noise(self.fluttuation_price(int(time()) - self.start_time))
-        # metti price nel database
+        '''
+            this function place a buy order of a crptocurrency
+            so the order yields fiat money for cryptocurrency
+        '''
+        
+        price = self.noise(self.fluttuation_price(int(time()) - self.start_time)) # price of 1 crypto
+        amount_buy = randint(1, 3) # amount of crypto to buy
+        amount_sell = amount_buy * price # amount of fiat money to spend
+        
+        # metti ordine nel database
+        # QUERY
+        self.__database.insert_into(f'''
+        INSERT INTO Ordine
+        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+        VALUES ({self.my_id}, '{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
+        ''')
         
         self.state = self.WAIT_BUY_STATE
     
@@ -437,7 +509,17 @@ class FakeUser(Thread):
     
     def place_sell(self) -> None:
         price = self.noise(self.fluttuation_price(int(time()) - self.start_time))
-        # metti price nel database
+        
+        amount_sell = randint(1, 3) # amount of crypto to buy
+        amount_buy = amount_sell * price # amount of fiat money to spend
+        
+        # metti ordine nel database
+        # QUERY
+        self.__database.insert_into(f'''
+        INSERT INTO Ordine
+        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+        VALUES ({self.my_id}, '{self.fiat_ticker}', '{self.crypto_ticker}', {amount_buy}, {amount_sell}, '{self.fiat_address}', '{self.crypto_address}')                 
+        ''')
         
         self.state = self.WAIT_SELL_STATE
     
