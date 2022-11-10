@@ -486,12 +486,13 @@ class FakeUser(Thread):
         VALUES ({self.my_id}, '{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
         ''')
         
+        self.order_id = self.__database.insered_id()
         self.state = self.WAIT_BUY_STATE
     
     
     def wait_buy(self) -> None:
         
-        while xxxx:
+        while len(self.__database.select(f'SELECT * FROM ordini WHERE OrderID={self.order_id}')) > 0:
             
             sleep(self.polling_rate)
         
@@ -500,7 +501,7 @@ class FakeUser(Thread):
     
     def wait_sell(self) -> None:
         
-        while xxxx:
+        while len(self.__database.select(f'SELECT * FROM ordini WHERE OrderID={self.order_id}')) > 0:
             
             sleep(self.polling_rate)
         
@@ -521,12 +522,13 @@ class FakeUser(Thread):
         VALUES ({self.my_id}, '{self.fiat_ticker}', '{self.crypto_ticker}', {amount_buy}, {amount_sell}, '{self.fiat_address}', '{self.crypto_address}')                 
         ''')
         
+        self.order_id = self.__database.insered_id()
         self.state = self.WAIT_SELL_STATE
     
     
     def stop(self) -> None:
-        
         self.is_running = False
+    
     
     def run(self):
         while self.is_running:
