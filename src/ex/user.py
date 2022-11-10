@@ -10,9 +10,15 @@ from time import sleep
 from random import choices, randint, sample, seed as set_seed, randbytes
 import string
 from sys import argv
+import signal
 
 active_fake_users = []
 
+def stop_fake_users(signal, fname):
+    for index, user in enumerate(active_fake_users):
+        user.stop()
+        user.join()
+        print(f"Stopped fake user {index}")
 
 class User:
 
@@ -557,5 +563,8 @@ if __name__ == "__main__":
         active_fake_users.append(t)
         t.start()
     
+    signal.signal(signal.SIGINT, stop_fake_users)
+    
     user = User(TerminalView())
     user.run()
+    user.exit()
