@@ -106,8 +106,8 @@ CREATE TABLE Ordine (
 	`Quantita vendo` INT NOT NULL CHECK(`Quantita vendo` > 0),
 	`Indirizzo compro` VARCHAR(255) NOT NULL,
 	`Indirizzo vendo` VARCHAR(255) NOT NULL,
-	Data DATE NOT NULL,
-	Ora TIME NOT NULL,
+	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
+	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
 	PRIMARY KEY (OrdineID));
 
 DROP TABLE IF EXISTS Transazione;
@@ -117,8 +117,8 @@ CREATE TABLE Transazione (
 	`Indirizzo Uscita` VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	Quantita INT NOT NULL CHECK (Quantita > 0),
-	Ora DATE NOT NULL,
-	Data TIME NOT NULL,
+	Ora DATE NOT NULL DEFAULT(CURRENT_DATE),
+	Data TIME NOT NULL DEFAULT(CURRENT_TIME),
 	PRIMARY KEY (ID));
 
 DROP TABLE IF EXISTS Transazione_fisica;
@@ -126,8 +126,8 @@ CREATE TABLE Transazione_fisica (
 	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Spread INT NOT NULL CHECK (Spread > 0),
-	Data DATE NOT NULL,
-	Ora TIME NOT NULL,
+	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
+	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
 	PRIMARY KEY (Data, Ora));
 
 DROP TABLE IF EXISTS Utente;
@@ -158,11 +158,23 @@ CREATE TABLE scambio (
 	`Transazione fiat` INT NOT NULL
 );
 
+DROP TABLE IF EXISTS contante;
+CREATE TABLE contante (
+	`Ticker fiat` VARCHAR(255) NOT NULL,
+	`Codice ATM` VARCHAR(255) NOT NULL,
+	Quantita INT NOT NULL CHECK (Quantita >= 0)
+);
+
 -- Instances needed section
 INSERT INTO fiat (Nome, Ticker)
 VALUES
 ("Euro, european", "EUR"),
 ("US dollar", "USD");
+
+INSERT INTO crypto (Nome, Ticker)
+VALUES
+("Bitcoin", "BTC"),
+("Etherium", "ETH");
 
 -- ConstraINTs Section
 -- ___________________
