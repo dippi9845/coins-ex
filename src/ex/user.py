@@ -396,6 +396,20 @@ class User:
         self.__database.close()
     
 
+def fluttuation_price(time: int) -> float:
+    '''
+        this function returns the price of the crypto
+        at the time passed as parameter
+    '''
+    return 0.015 * time + sin(2 * time) + cos(3 * time) + 3
+
+def noise(price: float) -> float:
+    '''
+        this function adds a random noise to the price
+    '''
+    return price + uniform(-0.015 * price, 0.015 * price)
+
+
 class FakeUser(Thread):
     
     BUY_STATE = "Buy"
@@ -423,7 +437,7 @@ class FakeUser(Thread):
         return "".join(choices(string.digits, k=randint(5, 9)))
 
     
-    def __init__(self, start_time : int, fluttuation_price : Callable, noise : Callable, initail_state : str,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=0, initial_amount : int=1000000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
+    def __init__(self, initail_state : str, start_time : int = int(time()), fluttuation_price : Callable = fluttuation_price, noise : Callable = noise,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=0, initial_amount : int=1000000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
         super().__init__()
         self.fluttuation_price = fluttuation_price
         self.noise = noise
@@ -557,18 +571,7 @@ class FakeUser(Thread):
         return super().join()
 
 
-def fluttuation_price(time: int) -> float:
-    '''
-        this function returns the price of the crypto
-        at the time passed as parameter
-    '''
-    return 0.015 * time + sin(2 * time) + cos(3 * time) + 3
 
-def noise(price: float) -> float:
-    '''
-        this function adds a random noise to the price
-    '''
-    return price + uniform(-0.015 * price, 0.015 * price)
 
 if __name__ == "__main__":
     arg_it = iter(argv)
@@ -577,12 +580,12 @@ if __name__ == "__main__":
     end = int(fake_user_num/2)
     
     for i in range(end):
-        t = FakeUser(int(time()), fluttuation_price, noise, FakeUser.BUY_STATE)
+        t = FakeUser(FakeUser.BUY_STATE)
         active_fake_users.append(t)
         t.start()
     
     for i in range(end):
-        t = FakeUser(int(time()), fluttuation_price, noise, FakeUser.SELL_STATE)
+        t = FakeUser(FakeUser.SELL_STATE)
         active_fake_users.append(t)
         t.start()
     
