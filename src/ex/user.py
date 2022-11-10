@@ -3,7 +3,7 @@ from view import View, TerminalView
 from database import Database
 from hashlib import sha256
 from time import time
-from random import randbytes
+from random import randbytes, uniform
 from datetime import datetime
 from threading import Thread
 from time import sleep
@@ -11,14 +11,17 @@ from random import choices, randint, sample, seed as set_seed, randbytes
 import string
 from sys import argv
 import signal
+from math import sin, cos
 
 active_fake_users = []
+
 
 def stop_fake_users(signal, fname):
     for index, user in enumerate(active_fake_users):
         user.stop()
         user.join()
         print(f"Stopped fake user {index}")
+
 
 class User:
 
@@ -421,6 +424,7 @@ class FakeUser(Thread):
 
     
     def __init__(self, start_time : int, fluttuation_price : Callable, noise : Callable, initail_state : str,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=0, initial_amount : int=1000000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
+        super().__init__()
         self.fluttuation_price = fluttuation_price
         self.noise = noise
         self.state = initail_state
@@ -488,6 +492,8 @@ class FakeUser(Thread):
         amount_buy = randint(1, 3) # amount of crypto to buy
         amount_sell = amount_buy * price # amount of fiat money to spend
         
+        # TODO CERCARE PRIMA DI INSERIRE
+        
         # metti ordine nel database
         # QUERY
         self.__database.insert_into(f'''
@@ -502,7 +508,7 @@ class FakeUser(Thread):
     
     def wait_buy(self) -> None:
         
-        while len(self.__database.select(f'SELECT * FROM ordini WHERE OrderID={self.order_id}')) > 0:
+        while len(self.__database.select(f'SELECT * FROM ordine WHERE OrdineID={self.order_id}')) > 0 and self.is_running:
             
             sleep(self.polling_rate)
         
@@ -511,7 +517,7 @@ class FakeUser(Thread):
     
     def wait_sell(self) -> None:
         
-        while len(self.__database.select(f'SELECT * FROM ordini WHERE OrderID={self.order_id}')) > 0:
+        while len(self.__database.select(f'SELECT * FROM ordine WHERE OrdineID={self.order_id}')) > 0 and self.is_running:
             
             sleep(self.polling_rate)
         
@@ -523,6 +529,8 @@ class FakeUser(Thread):
         
         amount_sell = randint(1, 3) # amount of crypto to buy
         amount_buy = amount_sell * price # amount of fiat money to spend
+        
+        # TODO CERCARE PRIMA DI INSERIRE
         
         # metti ordine nel database
         # QUERY
@@ -545,21 +553,36 @@ class FakeUser(Thread):
             self.states[self.state]()
     
     
-    def join(self, timeout: float | None = ...) -> None:
-        return super().join(timeout)
+    def join(self) -> None:
+        return super().join()
 
-    
+
+def fluttuation_price(time: int) -> float:
+    '''
+        this function returns the price of the crypto
+        at the time passed as parameter
+    '''
+    return 0.015 * time + sin(2 * time) + cos(3 * time) + 3
+
+def noise(price: float) -> float:
+    '''
+        this function adds a random noise to the price
+    '''
+    return price + uniform(-0.015 * price, 0.015 * price)
+
 if __name__ == "__main__":
     arg_it = iter(argv)
-    fake_user_num = int(next(arg_it), 500)
+    next(arg_it)
+    fake_user_num = int(next(arg_it, 100))
+    end = int(fake_user_num/2)
     
-    for i in range(fake_user_num/2):
-        t = FakeUser()
+    for i in range(end):
+        t = FakeUser(int(time()), fluttuation_price, noise, FakeUser.BUY_STATE)
         active_fake_users.append(t)
         t.start()
     
-    for i in range(fake_user_num/2):
-        t = FakeUser()
+    for i in range(end):
+        t = FakeUser(int(time()), fluttuation_price, noise, FakeUser.SELL_STATE)
         active_fake_users.append(t)
         t.start()
     
@@ -568,3 +591,4 @@ if __name__ == "__main__":
     user = User(TerminalView())
     user.run()
     user.exit()
+    stop_fake_users(None, None)
