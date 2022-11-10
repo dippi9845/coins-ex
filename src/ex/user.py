@@ -9,6 +9,10 @@ from threading import Thread
 from time import sleep
 from random import choices, randint, sample, seed as set_seed, randbytes
 import string
+from sys import argv
+
+active_fake_users = []
+
 
 class User:
 
@@ -533,7 +537,25 @@ class FakeUser(Thread):
     def run(self):
         while self.is_running:
             self.states[self.state]()
+    
+    
+    def join(self, timeout: float | None = ...) -> None:
+        return super().join(timeout)
 
+    
 if __name__ == "__main__":
+    arg_it = iter(argv)
+    fake_user_num = int(next(arg_it), 500)
+    
+    for i in range(fake_user_num/2):
+        t = FakeUser()
+        active_fake_users.append(t)
+        t.start()
+    
+    for i in range(fake_user_num/2):
+        t = FakeUser()
+        active_fake_users.append(t)
+        t.start()
+    
     user = User(TerminalView())
     user.run()
