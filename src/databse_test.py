@@ -72,8 +72,8 @@ class DatabseTest(unittest.TestCase):
 
         self.db.insert_into(f"""
         INSERT INTO Ordine
-        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
-        VALUES ({user_id}, '{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{address_in}', '{address_out}', '{date}', '{rnd_time}')
+        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+        VALUES ({user_id}, '{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{address_in}', '{address_out}')
         """)
 
         return self.db.insered_id()
