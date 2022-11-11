@@ -506,18 +506,48 @@ class FakeUser(Thread):
         amount_buy = randint(1, 3) # amount of crypto to buy
         amount_sell = amount_buy * price # amount of fiat money to spend
         
-        # TODO CERCARE PRIMA DI INSERIRE
-        
-        # metti ordine nel database
         # QUERY
-        self.__database.insert_into(f'''
-        INSERT INTO Ordine
-        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
-        VALUES ({self.my_id}, '{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
+        orders = self.__database.select(f'''
+        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID FROM Ordine
+        WHERE `Ticker compro`="{self.crypto_ticker}" AND `Ticker vendo`="{self.fiat_ticker}" AND
+        `Quantita compro` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
+        ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
         ''')
         
-        self.order_id = self.__database.insered_id()
-        self.state = self.WAIT_BUY_STATE
+        if len(orders) == 0:
+            # metti ordine nel database
+            # QUERY
+            self.__database.insert_into(f'''
+            INSERT INTO Ordine
+            (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+            VALUES ({self.my_id}, '{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
+            ''')
+        
+            self.order_id = self.__database.insered_id()
+            self.state = self.WAIT_BUY_STATE
+        
+        else:
+            ordine = orders[0]
+            real_amount_buy_c = ordine[1]
+            real_amount_buy_f = ordine[1] * price
+            
+            # Effuttua la transazione
+            self.__database.insert_into(f'''
+                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
+                VALUES
+                ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c}),
+            ''')
+            
+            self.__database.insert_into(f'''
+                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
+                VALUES
+                ('{ordine[0]}', '{self.fiat_address}', '{self.fiat_ticker}', {real_amount_buy_f})
+            ''')
+            
+            self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
+            sleep(self.polling_rate)
+            self.state = self.SELL_STATE
+                        
     
     
     def wait_buy(self) -> None:
@@ -544,18 +574,56 @@ class FakeUser(Thread):
         amount_sell = randint(1, 3) # amount of crypto to buy
         amount_buy = amount_sell * price # amount of fiat money to spend
         
-        # TODO CERCARE PRIMA DI INSERIRE
-        
-        # metti ordine nel database
+        # TODO: da swappare
         # QUERY
-        self.__database.insert_into(f'''
-        INSERT INTO Ordine
-        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
-        VALUES ({self.my_id}, '{self.fiat_ticker}', '{self.crypto_ticker}', {amount_buy}, {amount_sell}, '{self.fiat_address}', '{self.crypto_address}')                 
+        orders = self.__database.select(f'''
+        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID FROM Ordine
+        WHERE `Ticker compro`="{self.crypto_ticker}" AND `Ticker vendo`="{self.fiat_ticker}" AND
+        `Quantita compro` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
+        ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
         ''')
         
-        self.order_id = self.__database.insered_id()
-        self.state = self.WAIT_SELL_STATE
+        if len(orders) == 0:
+            # TODO: da swappare
+            # metti ordine nel database
+            # QUERY
+            self.__database.insert_into(f'''
+            INSERT INTO Ordine
+            (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+            VALUES ({self.my_id}, '{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
+            ''')
+            
+            self.__database.insert_into(f'''
+            INSERT INTO Ordine
+            (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+            VALUES ({self.my_id}, '{self.fiat_ticker}', '{self.crypto_ticker}', {amount_buy}, {amount_sell}, '{self.fiat_address}', '{self.crypto_address}')                 
+            ''')
+        
+            self.order_id = self.__database.insered_id()
+            self.state = self.WAIT_BUY_STATE
+        
+        else:
+            # TODO: da swappare
+            ordine = orders[0]
+            real_amount_buy_c = ordine[1]
+            real_amount_buy_f = ordine[1] * price
+            
+            # Effuttua la transazione
+            self.__database.insert_into(f'''
+                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
+                VALUES
+                ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c}),
+            ''')
+            
+            self.__database.insert_into(f'''
+                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
+                VALUES
+                ('{ordine[0]}', '{self.fiat_address}', '{self.fiat_ticker}', {real_amount_buy_f})
+            ''')
+            
+            self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
+            sleep(self.polling_rate)
+            self.state = self.SELL_STATE
     
     
     def stop(self) -> None:
