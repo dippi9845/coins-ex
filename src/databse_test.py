@@ -79,10 +79,11 @@ class DatabseTest(unittest.TestCase):
         return self.db.insered_id()
 
     def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> int:
+        date = datetime.now()
         self.db.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
             VALUES
-            ('{address_in}', '{address_out}', '{ticker}', {amount})
+            ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
         ''')
 
         transaction_id = self.db.insered_id()
@@ -564,7 +565,6 @@ class DatabseTest(unittest.TestCase):
         SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo` FROM Ordine
         WHERE `Ticker compro`="BTC" AND `Ticker vendo`="EUR" AND
         `Quantita compro` BETWEEN {int(amount_buy * (1-tollerance))} AND {int(amount_buy * (1+tollerance))}
-        ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
         ''')
 
         sells = list(map(lambda x: x[1], orders))
@@ -576,6 +576,7 @@ class DatabseTest(unittest.TestCase):
         self.assertNotIn(600, sells)
 
         # most near test
+        orders.sort(key=lambda x: abs(amount_buy - x[1]))
         self.assertEqual(orders[0][1], 900)
         self.assertEqual(orders[0][0], btc_addr2)
         self.assertEqual(orders[0][2], eur_addr2)
