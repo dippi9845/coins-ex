@@ -1,6 +1,5 @@
 from typing import Any
 import mysql.connector
-from json import loads
 from functools import partial
 from ex.config import DatabaseConfig
 
