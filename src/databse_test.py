@@ -79,11 +79,10 @@ class DatabseTest(unittest.TestCase):
         return self.db.insered_id()
 
     def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> int:
-        date = datetime.now()
         self.db.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
+            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
             VALUES
-            ('{address_in}', '{address_out}', '{ticker}', {amount}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
+            ('{address_in}', '{address_out}', '{ticker}', {amount})
         ''')
 
         transaction_id = self.db.insered_id()
