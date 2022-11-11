@@ -509,7 +509,7 @@ class FakeUser(Thread):
         # QUERY
         orders = self.__database.select(f'''
         SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID FROM Ordine
-        WHERE `Ticker compro`="{self.crypto_ticker}" AND `Ticker vendo`="{self.fiat_ticker}" AND
+        WHERE `Ticker compro`="{self.fiat_ticker}" AND `Ticker vendo`="{self.crypto_ticker}" AND
         `Quantita compro` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
         ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
         ''')
@@ -571,7 +571,9 @@ class FakeUser(Thread):
     def place_sell(self) -> None:
         price = self.noise(self.fluttuation_price(int(time()) - self.start_time))
         
-        amount_sell = randint(1, 3) # amount of crypto to buy
+        max_crypto = self.__database.select(f'SELECT Saldo FROM wallet_utente WHERE UserID={self.my_id} AND Ticker="{self.crypto_ticker}"')[0][0]
+        
+        amount_sell = randint(1, max_crypto) # amount of crypto to buy
         amount_buy = amount_sell * price # amount of fiat money to spend
         
         # TODO: da swappare
