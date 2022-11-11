@@ -475,6 +475,7 @@ class DatabseTest(unittest.TestCase):
         SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo` FROM Ordine
         WHERE `Ticker compro`="EUR" AND `Ticker vendo`="BTC" AND
         `Quantita compro` BETWEEN {int(amount_buy * (1-tollerance))} AND {int(amount_buy * (1+tollerance))}
+        ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
         ''')
         
         sells = list(map(lambda x: x[1], orders))
@@ -487,7 +488,6 @@ class DatabseTest(unittest.TestCase):
         self.assertNotIn(15000, sells)
 
         # most near test
-        orders.sort(key=lambda x: abs(amount_buy - x[1]))
         self.assertEqual(orders[0][1], 18000)
         self.assertEqual(orders[0][0], eur_addr2)
         self.assertEqual(orders[0][2], btc_addr2)
