@@ -508,7 +508,7 @@ class FakeUser(Thread):
         
         # QUERY
         orders = self.__database.select(f'''
-        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID FROM Ordine
+        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID, `Quantita vendo` FROM Ordine
         WHERE `Ticker compro`="{self.fiat_ticker}" AND `Ticker vendo`="{self.crypto_ticker}" AND
         `Quantita compro` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
         ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
@@ -528,8 +528,8 @@ class FakeUser(Thread):
         
         else:
             ordine = orders[0]
-            real_amount_buy_c = ordine[1]
-            real_amount_buy_f = ordine[1] * price
+            real_amount_buy_f = ordine[1]
+            real_amount_buy_c = ordine[4]
             
             # Effuttua la transazione
             self.__database.insert_into(f'''
@@ -576,7 +576,6 @@ class FakeUser(Thread):
         amount_sell = randint(1, max_crypto) # amount of crypto to buy
         amount_buy = amount_sell * price # amount of fiat money to spend
         
-        # TODO: da swappare
         # QUERY
         orders = self.__database.select(f'''
         SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID FROM Ordine
@@ -586,14 +585,8 @@ class FakeUser(Thread):
         ''')
         
         if len(orders) == 0:
-            # TODO: da swappare
             # metti ordine nel database
             # QUERY
-            self.__database.insert_into(f'''
-            INSERT INTO Ordine
-            (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
-            VALUES ({self.my_id}, '{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
-            ''')
             
             self.__database.insert_into(f'''
             INSERT INTO Ordine
@@ -605,22 +598,21 @@ class FakeUser(Thread):
             self.state = self.WAIT_BUY_STATE
         
         else:
-            # TODO: da swappare
             ordine = orders[0]
             real_amount_buy_c = ordine[1]
-            real_amount_buy_f = ordine[1] * price
+            real_amount_buy_f = ordine[4]
             
             # Effuttua la transazione
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
                 VALUES
-                ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c}),
+                ('{ordine[2]}', '{self.crypto_address}', '{self.crypto_ticker}', {real_amount_buy_c}),
             ''')
             
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
                 VALUES
-                ('{ordine[0]}', '{self.fiat_address}', '{self.fiat_ticker}', {real_amount_buy_f})
+                ('{self.fiat_address}', '{ordine[0]}', '{self.fiat_ticker}', {real_amount_buy_f})
             ''')
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
