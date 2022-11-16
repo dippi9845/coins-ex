@@ -531,17 +531,14 @@ class FakeUser(Thread):
             real_amount_buy_f = ordine[1]
             real_amount_buy_c = ordine[4]
             
+            # TODO : aggiornamento del saldo del wallet
+            # TODO : Query unica con transazione per evitare problemi di concorrenza
+            
             # Effuttua la transazione
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
                 VALUES
                 ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c}),
-            ''')
-            
-            self.__database.insert_into(f'''
-                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
-                VALUES
-                ('{ordine[0]}', '{self.fiat_address}', '{self.fiat_ticker}', {real_amount_buy_f})
             ''')
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
@@ -602,17 +599,14 @@ class FakeUser(Thread):
             real_amount_buy_c = ordine[1]
             real_amount_buy_f = ordine[4]
             
+            # TODO : aggiornamento del saldo del wallet
+            # TODO : Query unica con transazione per evitare problemi di concorrenza
+            
             # Effuttua la transazione
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
                 VALUES
                 ('{ordine[2]}', '{self.crypto_address}', '{self.crypto_ticker}', {real_amount_buy_c}),
-            ''')
-            
-            self.__database.insert_into(f'''
-                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
-                VALUES
-                ('{self.fiat_address}', '{ordine[0]}', '{self.fiat_ticker}', {real_amount_buy_f})
             ''')
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
