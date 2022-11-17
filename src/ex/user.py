@@ -531,7 +531,6 @@ class FakeUser(Thread):
             real_amount_buy_f = ordine[1]
             real_amount_buy_c = ordine[4]
             
-            # TODO : aggiornamento del saldo del wallet
             # TODO : Query unica con transazione per evitare problemi di concorrenza
             
             # Effuttua la transazione
@@ -611,7 +610,6 @@ class FakeUser(Thread):
             real_amount_buy_c = ordine[1]
             real_amount_buy_f = ordine[4]
             
-            # TODO : aggiornamento del saldo del wallet
             # TODO : Query unica con transazione per evitare problemi di concorrenza
             
             # Effuttua la transazione
