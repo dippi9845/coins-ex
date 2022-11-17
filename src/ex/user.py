@@ -437,7 +437,7 @@ class FakeUser(Thread):
         return "".join(choices(string.digits, k=randint(5, 9)))
 
     
-    def __init__(self, initail_state : str, start_time : int = int(time()), fluttuation_price : Callable = fluttuation_price, noise : Callable = noise,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=0, initial_amount : int=1000000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
+    def __init__(self, initail_state : str, start_time : int = int(time()), fluttuation_price : Callable = fluttuation_price, noise : Callable = noise,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_amount : int=1000000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
         super().__init__()
         self.fluttuation_price = fluttuation_price
         self.noise = noise
@@ -487,7 +487,7 @@ class FakeUser(Thread):
         
         self.__database.insert_into(f'''
             INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({self.my_id}, "{self.crypto_address}", 0, "Exchange name", "{crypto_ticker}")
+            VALUES ({self.my_id}, "{self.crypto_address}", {self.inital_crypto}, "Exchange name", "{crypto_ticker}")
         ''')
         
         self.__database.insert_into(f'''
@@ -540,6 +540,8 @@ class FakeUser(Thread):
                 ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c}),
             ''')
             
+            trans_cry = self.__database.insered_id()
+            
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
             
@@ -549,8 +551,12 @@ class FakeUser(Thread):
                 ('{ordine[0]}', '{self.fiat_address}', '{self.fiat_ticker}', {real_amount_buy_f})
             ''')
             
+            trans_eur = self.__database.insered_id()
+            
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
+            
+            self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
             sleep(self.polling_rate)
@@ -619,6 +625,8 @@ class FakeUser(Thread):
                 ('{ordine[2]}', '{self.crypto_address}', '{self.crypto_ticker}', {real_amount_buy_c}),
             ''')
             
+            trans_cry = self.__database.insered_id()
+            
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
             
@@ -628,8 +636,12 @@ class FakeUser(Thread):
                 ('{self.fiat_address}', '{ordine[0]}', '{self.fiat_ticker}', {real_amount_buy_f})
             ''')
             
+            trans_eur = self.__database.insered_id()
+            
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
             self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
+            
+            self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
             sleep(self.polling_rate)
