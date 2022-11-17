@@ -541,6 +541,18 @@ class FakeUser(Thread):
                 ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c}),
             ''')
             
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
+            
+            self.__database.insert_into(f'''
+                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
+                VALUES
+                ('{ordine[0]}', '{self.fiat_address}', '{self.fiat_ticker}', {real_amount_buy_f})
+            ''')
+            
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
+            
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
             sleep(self.polling_rate)
             self.state = self.SELL_STATE
@@ -608,6 +620,18 @@ class FakeUser(Thread):
                 VALUES
                 ('{ordine[2]}', '{self.crypto_address}', '{self.crypto_ticker}', {real_amount_buy_c}),
             ''')
+            
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
+            
+            self.__database.insert_into(f'''
+                INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
+                VALUES
+                ('{self.fiat_address}', '{ordine[0]}', '{self.fiat_ticker}', {real_amount_buy_f})
+            ''')
+            
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
+            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
             sleep(self.polling_rate)
