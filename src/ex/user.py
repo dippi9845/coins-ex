@@ -661,6 +661,14 @@ class FakeUser(Thread):
         return super().join()
 
 
+class Mediator:
+    
+    def __init__(self, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000):
+        self.fluttuation = fluttuation
+        self.noise = noise
+        self.seller = FakeUser(FakeUser.SELL_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
+        self.buyer = FakeUser(FakeUser.BUY_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
+        
 
 
 if __name__ == "__main__":
