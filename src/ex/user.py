@@ -410,7 +410,7 @@ def noise(price: float) -> float:
     return price + uniform(-0.015 * price, 0.015 * price)
 
 
-class FakeUser(Thread):
+class FakeUser:
     
     BUY_STATE = "Buy"
     WAIT_BUY_STATE = "Wait buy"
