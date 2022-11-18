@@ -553,8 +553,8 @@ class FakeUser(Thread):
             
             trans_eur = self.__database.insered_id()
             
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
+            self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
+            self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
             
             self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
@@ -638,8 +638,8 @@ class FakeUser(Thread):
             
             trans_eur = self.__database.insered_id()
             
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
+            self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
+            self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
             
             self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
