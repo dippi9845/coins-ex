@@ -1,7 +1,7 @@
 from typing import Any
 import mysql.connector
 from functools import partial
-from ex.config import DatabaseConfig
+from config import DatabaseConfig
 
 class Database:
     def __init__(self, cofig : dict=DatabaseConfig) -> None:
