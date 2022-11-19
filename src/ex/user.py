@@ -442,14 +442,17 @@ class FakeUser:
         self.state = initail_state
         self.start_time = start_time
         
+        self.next_c_amount = 0
+        self.next_f_amount = 0
+        
         self.initial_amount = initial_amount
         self.inital_crypto = inital_crypto
         self.crypto_ticker = crypto_ticker
         self.fiat_ticker = fiat_ticker
         
         self.states = {
-            self.BUY_STATE : self.place_buy,
-            self.SELL_STATE : self.place_sell
+            self.BUY_STATE : self._place_buy,
+            self.SELL_STATE : self._place_sell
         }
         
         self.__database = Database()
@@ -494,9 +497,8 @@ class FakeUser:
             so the order yields fiat money for cryptocurrency
         '''
         
-        price = self.noise(self.fluttuation_price(int(time()) - self.start_time)) # price of 1 crypto
-        amount_buy = randint(1, 3) # amount of crypto to buy
-        amount_sell = amount_buy * price # amount of fiat money to spend
+        amount_buy = self.next_c_amount # amount of crypto to buy
+        amount_sell = self.next_f_amount # amount of fiat money to spend
         
         # QUERY
         orders = self.__database.select(f'''
@@ -516,7 +518,6 @@ class FakeUser:
             ''')
         
             self.order_id = self.__database.insered_id()
-            self.state = self.WAIT_BUY_STATE
         
         else:
             ordine = orders[0]
@@ -551,16 +552,14 @@ class FakeUser:
             self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
-            self.state = self.SELL_STATE
+        
+        self.state = self.SELL_STATE
     
     
     def _place_sell(self) -> None:
-        price = self.noise(self.fluttuation_price(int(time()) - self.start_time))
         
-        max_crypto = self.__database.select(f'SELECT Saldo FROM wallet_utente WHERE UserID={self.my_id} AND Ticker="{self.crypto_ticker}"')[0][0]
-        
-        amount_sell = randint(1, max_crypto) # amount of crypto to buy
-        amount_buy = amount_sell * price # amount of fiat money to spend
+        amount_sell = self.next_c_amount # amount of crypto to buy
+        amount_buy = self.next_f_amount # amount of fiat money to spend
         
         # QUERY
         orders = self.__database.select(f'''
@@ -581,7 +580,6 @@ class FakeUser:
             ''')
         
             self.order_id = self.__database.insered_id()
-            self.state = self.WAIT_BUY_STATE
         
         else:
             ordine = orders[0]
@@ -616,7 +614,14 @@ class FakeUser:
             self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
-            self.state = self.SELL_STATE
+        
+        self.state = self.BUY_STATE
+    
+    
+    def _set_next_amounts(self, crypto : int, fiat : int) -> None:
+        self.next_c_amount = crypto
+        self.next_f_amount = fiat
+        
     
     
     def execute_state(self) -> None:
