@@ -13,13 +13,13 @@ from sys import argv
 import signal
 from math import sin, cos
 
-active_fake_users = []
+active_mediators = []
 
 
 def stop_fake_users(signal, fname):
-    for index, user in enumerate(active_fake_users):
-        user.stop()
-        user.join()
+    for index, mediator in enumerate(active_mediators):
+        mediator.stop()
+        mediator.join()
         print(f"Stopped fake user {index}")
 
 
@@ -622,6 +622,7 @@ class FakeUser:
     def execute_state(self) -> None:
         self.states[self.state]()
     
+    
     def close(self) -> None:
         self.__database.close()
     
@@ -642,7 +643,9 @@ class Mediator:
     
     def run(self):
         while self.is_running:
-            
+            # TODO : genera i nuovi prezzi e dalli agli user
+            self.buyer.execute_state()
+            self.seller.execute_state()
     
     
     def join(self) -> None:
@@ -658,12 +661,12 @@ if __name__ == "__main__":
     
     for i in range(end):
         t = FakeUser(FakeUser.BUY_STATE)
-        active_fake_users.append(t)
+        active_mediators.append(t)
         t.start()
     
     for i in range(end):
         t = FakeUser(FakeUser.SELL_STATE)
-        active_fake_users.append(t)
+        active_mediators.append(t)
         t.start()
     
     signal.signal(signal.SIGINT, stop_fake_users)
