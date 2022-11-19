@@ -488,7 +488,7 @@ class FakeUser:
         ''')
 
     
-    def place_buy(self) -> None:
+    def _place_buy(self) -> None:
         '''
             this function place a buy order of a crptocurrency
             so the order yields fiat money for cryptocurrency
@@ -554,7 +554,7 @@ class FakeUser:
             self.state = self.SELL_STATE
     
     
-    def place_sell(self) -> None:
+    def _place_sell(self) -> None:
         price = self.noise(self.fluttuation_price(int(time()) - self.start_time))
         
         max_crypto = self.__database.select(f'SELECT Saldo FROM wallet_utente WHERE UserID={self.my_id} AND Ticker="{self.crypto_ticker}"')[0][0]
