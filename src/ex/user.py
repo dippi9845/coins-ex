@@ -451,8 +451,6 @@ class FakeUser:
         
         self.states = {
             self.BUY_STATE : self.place_buy,
-            self.WAIT_BUY_STATE : self.wait_buy,
-            self.WAIT_SELL_STATE : self.wait_sell,
             self.SELL_STATE : self.place_sell
         }
         
@@ -555,27 +553,7 @@ class FakeUser:
             self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
-            sleep(self.polling_rate)
             self.state = self.SELL_STATE
-                        
-    
-    
-    def wait_buy(self) -> None:
-        
-        while len(self.__database.select(f'SELECT * FROM ordine WHERE OrdineID={self.order_id}')) > 0 and self.is_running:
-            
-            sleep(self.polling_rate)
-        
-        self.state = self.SELL_STATE
-    
-    
-    def wait_sell(self) -> None:
-        
-        while len(self.__database.select(f'SELECT * FROM ordine WHERE OrdineID={self.order_id}')) > 0 and self.is_running:
-            
-            sleep(self.polling_rate)
-        
-        self.state = self.BUY_STATE
     
     
     def place_sell(self) -> None:
@@ -640,7 +618,6 @@ class FakeUser:
             self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
-            sleep(self.polling_rate)
             self.state = self.SELL_STATE
     
     
@@ -657,8 +634,10 @@ class Mediator:
         self.seller = FakeUser(FakeUser.SELL_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
         self.buyer = FakeUser(FakeUser.BUY_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
         
+    
     def stop(self) -> None:
         self.is_running = False
+    
     
     def run(self):
         while self.is_running:
