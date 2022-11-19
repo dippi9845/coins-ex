@@ -435,10 +435,8 @@ class FakeUser:
         return "".join(choices(string.digits, k=randint(5, 9)))
 
     
-    def __init__(self, initail_state : str, start_time : int = int(time()), fluttuation_price : Callable = fluttuation_price, noise : Callable = noise,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_amount : int=1000000) -> None:
+    def __init__(self, initail_state : str, start_time : int = int(time()),  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_amount : int=1000000) -> None:
         super().__init__()
-        self.fluttuation_price = fluttuation_price
-        self.noise = noise
         self.state = initail_state
         self.start_time = start_time
         
@@ -638,8 +636,8 @@ class Mediator:
     def __init__(self, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000, polling_rate : float = 0.1):
         self.fluttuation = fluttuation
         self.noise = noise
-        self.seller = FakeUser(FakeUser.SELL_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
-        self.buyer = FakeUser(FakeUser.BUY_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
+        self.seller = FakeUser(FakeUser.SELL_STATE, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
+        self.buyer = FakeUser(FakeUser.BUY_STATE, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
         
     
     def stop(self) -> None:
