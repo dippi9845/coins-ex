@@ -437,21 +437,17 @@ class FakeUser:
         return "".join(choices(string.digits, k=randint(5, 9)))
 
     
-    def __init__(self, initail_state : str, start_time : int = int(time()), fluttuation_price : Callable = fluttuation_price, noise : Callable = noise,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_amount : int=1000000, reload_amount : int=1000, polling_rate :float=0.001) -> None:
+    def __init__(self, initail_state : str, start_time : int = int(time()), fluttuation_price : Callable = fluttuation_price, noise : Callable = noise,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_amount : int=1000000) -> None:
         super().__init__()
         self.fluttuation_price = fluttuation_price
         self.noise = noise
         self.state = initail_state
         self.start_time = start_time
         
-        self.reload_amount = reload_amount # spero di non dover usare sta cosa (quantità di soldi che viene ricaricata ogni volta che finiscono)
         self.initial_amount = initial_amount
         self.inital_crypto = inital_crypto
         self.crypto_ticker = crypto_ticker
         self.fiat_ticker = fiat_ticker
-        self.polling_rate = polling_rate
-        
-        self.is_running = True
         
         self.states = {
             self.BUY_STATE : self.place_buy,
