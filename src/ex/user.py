@@ -20,7 +20,7 @@ def stop_fake_users(signal, fname):
     for index, mediator in enumerate(active_mediators):
         mediator.stop()
         mediator.join()
-        print(f"Stopped fake user {index}")
+        print(f"Stopped mediator {index}")
 
 
 class User:
@@ -435,7 +435,7 @@ class FakeUser:
         return "".join(choices(string.digits, k=randint(5, 9)))
 
     
-    def __init__(self, initail_state : str, start_time : int = int(time()),  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_amount : int=1000000) -> None:
+    def __init__(self, initail_state : str, start_time : int = int(time()),  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_fiat : int=1000000) -> None:
         super().__init__()
         self.state = initail_state
         self.start_time = start_time
@@ -443,7 +443,7 @@ class FakeUser:
         self.next_c_amount = 0
         self.next_f_amount = 0
         
-        self.initial_amount = initial_amount
+        self.initial_amount = initial_fiat
         self.inital_crypto = inital_crypto
         self.crypto_ticker = crypto_ticker
         self.fiat_ticker = fiat_ticker
@@ -631,14 +631,17 @@ class FakeUser:
     
 
 
-class Mediator:
+class Mediator(Thread):
     
     def __init__(self, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000, polling_rate : float = 0.1):
+        super().__init__()
+        self.is_running = True
         self.fluttuation = fluttuation
         self.noise = noise
-        self.seller = FakeUser(FakeUser.SELL_STATE, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
-        self.buyer = FakeUser(FakeUser.BUY_STATE, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
-        
+        self.seller = FakeUser(FakeUser.SELL_STATE, inital_crypto=inital_crypto_amount, initial_fiat=inital_fiat_amount)
+        self.buyer = FakeUser(FakeUser.BUY_STATE, inital_crypto=inital_crypto_amount, initial_fiat=inital_fiat_amount)
+        self.start_time = time()
+    
     
     def stop(self) -> None:
         self.is_running = False
@@ -646,7 +649,12 @@ class Mediator:
     
     def run(self):
         while self.is_running:
-            # TODO : genera i nuovi prezzi e dalli agli user
+            c_amount = randint(1, 100)
+            f_amount = self.noise(self.fluttuation(int(time()) - self.start_time)) * c_amount
+            
+            self.buyer._set_next_amounts(c_amount, f_amount)
+            self.seller._set_next_amounts(c_amount, f_amount)
+            
             self.buyer.execute_state()
             self.seller.execute_state()
     
@@ -663,14 +671,10 @@ if __name__ == "__main__":
     end = int(fake_user_num/2)
     
     for i in range(end):
-        t = FakeUser(FakeUser.BUY_STATE)
+        t = Mediator()
         active_mediators.append(t)
         t.start()
-    
-    for i in range(end):
-        t = FakeUser(FakeUser.SELL_STATE)
-        active_mediators.append(t)
-        t.start()
+        sleep(0.1)
     
     signal.signal(signal.SIGINT, stop_fake_users)
     
