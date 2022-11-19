@@ -413,9 +413,7 @@ def noise(price: float) -> float:
 class FakeUser:
     
     BUY_STATE = "Buy"
-    WAIT_BUY_STATE = "Wait buy"
     SELL_STATE = "Sell"
-    WAIT_SELL_STATE = "Wait sell"
     
     
     def __random_string(self) -> str:
@@ -621,6 +619,9 @@ class FakeUser:
             self.state = self.SELL_STATE
     
     
+    def execute_state(self) -> None:
+        self.states[self.state]()
+    
     def close(self) -> None:
         self.__database.close()
     
@@ -628,7 +629,7 @@ class FakeUser:
 
 class Mediator:
     
-    def __init__(self, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000):
+    def __init__(self, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000, polling_rate : float = 0.1):
         self.fluttuation = fluttuation
         self.noise = noise
         self.seller = FakeUser(FakeUser.SELL_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
@@ -641,7 +642,7 @@ class Mediator:
     
     def run(self):
         while self.is_running:
-            self.states[self.state]()
+            
     
     
     def join(self) -> None:
