@@ -648,17 +648,9 @@ class FakeUser:
             self.state = self.SELL_STATE
     
     
-    def stop(self) -> None:
-        self.is_running = False
+    def close(self) -> None:
+        self.__database.close()
     
-    
-    def run(self):
-        while self.is_running:
-            self.states[self.state]()
-    
-    
-    def join(self) -> None:
-        return super().join()
 
 
 class Mediator:
@@ -668,6 +660,17 @@ class Mediator:
         self.noise = noise
         self.seller = FakeUser(FakeUser.SELL_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
         self.buyer = FakeUser(FakeUser.BUY_STATE, fluttuattion_price=fluttuation, noise=noise, inital_crypto=inital_crypto_amount, inital_fiat=inital_fiat_amount)
+        
+    def stop(self) -> None:
+        self.is_running = False
+    
+    def run(self):
+        while self.is_running:
+            self.states[self.state]()
+    
+    
+    def join(self) -> None:
+        return super().join()
         
 
 
