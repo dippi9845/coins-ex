@@ -644,6 +644,8 @@ class Mediator(Thread):
     
     
     def stop(self) -> None:
+        self.buyer.close()
+        self.seller.close()
         self.is_running = False
     
     
