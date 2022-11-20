@@ -528,7 +528,7 @@ class FakeUser:
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
                 VALUES
-                ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c}),
+                ('{self.crypto_address}', '{ordine[2]}', '{self.crypto_ticker}', {real_amount_buy_c})
             ''')
             
             trans_cry = self.__database.insered_id()
@@ -563,7 +563,7 @@ class FakeUser:
         orders = self.__database.select(f'''
         SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID FROM Ordine
         WHERE `Ticker compro`="{self.crypto_ticker}" AND `Ticker vendo`="{self.fiat_ticker}" AND
-        `Quantita compro` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
+        `Quantita vendo` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
         ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
         ''')
         
@@ -582,7 +582,7 @@ class FakeUser:
         else:
             ordine = orders[0]
             real_amount_buy_c = ordine[1]
-            real_amount_buy_f = ordine[4]
+            real_amount_buy_f = ordine[3]
             
             # TODO : Query unica con transazione per evitare problemi di concorrenza
             
@@ -590,7 +590,7 @@ class FakeUser:
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
                 VALUES
-                ('{ordine[2]}', '{self.crypto_address}', '{self.crypto_ticker}', {real_amount_buy_c}),
+                ('{ordine[2]}', '{self.crypto_address}', '{self.crypto_ticker}', {real_amount_buy_c})
             ''')
             
             trans_cry = self.__database.insered_id()
@@ -669,7 +669,7 @@ class Mediator(Thread):
 if __name__ == "__main__":
     arg_it = iter(argv)
     next(arg_it)
-    fake_user_num = int(next(arg_it, 100))
+    fake_user_num = int(next(arg_it, 2))
     end = int(fake_user_num/2)
     
     for i in range(end):
