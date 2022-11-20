@@ -435,8 +435,9 @@ class FakeUser:
         return "".join(choices(string.digits, k=randint(5, 9)))
 
     
-    def __init__(self, initail_state : str, start_time : int = int(time()),  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_fiat : int=1000000) -> None:
+    def __init__(self, initail_state : str, exchange_name : str, start_time : int = int(time()),  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_fiat : int=1000000) -> None:
         super().__init__()
+        self.exchange_name = exchange_name
         self.state = initail_state
         self.start_time = start_time
         
@@ -480,12 +481,12 @@ class FakeUser:
         
         self.__database.insert_into(f'''
             INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({self.my_id}, "{self.crypto_address}", {self.inital_crypto}, "Exchange name", "{crypto_ticker}")
+            VALUES ({self.my_id}, "{self.crypto_address}", {self.inital_crypto}, {self.exchange_name}, "{crypto_ticker}")
         ''')
         
         self.__database.insert_into(f'''
             INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({self.my_id}, "{self.fiat_address}", {self.initial_amount}, "Exchange name", "{fiat_ticker}")
+            VALUES ({self.my_id}, "{self.fiat_address}", {self.initial_amount}, {self.exchange_name}, "{fiat_ticker}")
         ''')
 
     
@@ -633,13 +634,14 @@ class FakeUser:
 
 class Mediator(Thread):
     
-    def __init__(self, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000, polling_rate : float = 0.1):
+    def __init__(self, exchange_name : str, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000, polling_rate : float = 0.1):
         super().__init__()
+        self.exchange_name = exchange_name
         self.is_running = True
         self.fluttuation = fluttuation
         self.noise = noise
-        self.seller = FakeUser(FakeUser.SELL_STATE, inital_crypto=inital_crypto_amount, initial_fiat=inital_fiat_amount)
-        self.buyer = FakeUser(FakeUser.BUY_STATE, inital_crypto=inital_crypto_amount, initial_fiat=inital_fiat_amount)
+        self.seller = FakeUser(FakeUser.SELL_STATE, self.exchange_name, inital_crypto=inital_crypto_amount, initial_fiat=inital_fiat_amount)
+        self.buyer = FakeUser(FakeUser.BUY_STATE, self.exchange_name, inital_crypto=inital_crypto_amount, initial_fiat=inital_fiat_amount)
         self.start_time = time()
     
     
