@@ -13,15 +13,6 @@ from sys import argv
 import signal
 from math import sin, cos
 
-active_mediators = []
-
-
-def stop_fake_users(signal, fname):
-    for index, mediator in enumerate(active_mediators):
-        mediator.stop()
-        mediator.join()
-        print(f"Stopped mediator {index}")
-
 
 class User:
 
@@ -667,6 +658,28 @@ class Mediator(Thread):
         return super().join()
         
 
+class Market:
+
+    def __init__(self, exchange_name: str, mediators_num : int = 50) -> None:
+        self.active_mediators = []
+        self.exchange_name = exchange_name
+        
+        for _ in range(mediators_num):
+            self.active_mediators.append(Mediator(self.exchange_name))
+
+    
+    def start(self) -> None:
+        for mediator in self.active_mediators:
+            mediator.start()
+
+
+    def stop_mediators(self, signal, fname):
+        for index, mediator in enumerate(self.active_mediators):
+            mediator.stop()
+            mediator.join()
+            print(f"Stopped mediator {index}")
+        
+
 
 if __name__ == "__main__":
     arg_it = iter(argv)
@@ -674,15 +687,11 @@ if __name__ == "__main__":
     fake_user_num = int(next(arg_it, 2))
     end = int(fake_user_num/2)
     
-    for i in range(end):
-        t = Mediator()
-        active_mediators.append(t)
-        t.start()
-        sleep(0.1)
+    market = Market("Binance", mediators_num=end)
     
-    signal.signal(signal.SIGINT, stop_fake_users)
+    signal.signal(signal.SIGINT, market.stop_mediators)
     
     user = User(TerminalView())
     user.run()
     user.exit()
-    stop_fake_users(None, None)
+    market.stop_mediators(None, None)
