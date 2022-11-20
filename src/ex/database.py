@@ -95,7 +95,7 @@ if __name__ == "__main__":
     
     cursor = cnx.cursor()
     
-    cursor.execute("")
+    #cursor.execute("")
 
     with open("../../init.sql", "r") as f:
         query = f.read().split(";")
