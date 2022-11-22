@@ -426,11 +426,10 @@ class FakeUser:
         return "".join(choices(string.digits, k=randint(5, 9)))
 
     
-    def __init__(self, initail_state : str, exchange_name : str, start_time : int = int(time()),  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_fiat : int=1000000) -> None:
+    def __init__(self, initial_state : str, exchange_name : str,  fiat_ticker : str="EUR", crypto_ticker : str="BTC", inital_crypto : int=1000000, initial_fiat : int=1000000) -> None:
         super().__init__()
         self.exchange_name = exchange_name
-        self.state = initail_state
-        self.start_time = start_time
+        self.state = initial_state
         
         self.next_c_amount = 0
         self.next_f_amount = 0
@@ -472,12 +471,12 @@ class FakeUser:
         
         self.__database.insert_into(f'''
             INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({self.my_id}, "{self.crypto_address}", {self.inital_crypto}, {self.exchange_name}, "{crypto_ticker}")
+            VALUES ({self.my_id}, "{self.crypto_address}", {self.inital_crypto}, "{self.exchange_name}", "{crypto_ticker}")
         ''')
         
         self.__database.insert_into(f'''
             INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({self.my_id}, "{self.fiat_address}", {self.initial_amount}, {self.exchange_name}, "{fiat_ticker}")
+            VALUES ({self.my_id}, "{self.fiat_address}", {self.initial_amount}, "{self.exchange_name}", "{fiat_ticker}")
         ''')
 
     
@@ -625,7 +624,7 @@ class FakeUser:
 
 class Mediator(Thread):
     
-    def __init__(self, exchange_name : str, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000, polling_rate : float = 0.1):
+    def __init__(self, exchange_name : str, fluttuation : Callable = fluttuation_price, noise : Callable = noise, inital_crypto_amount : int = 1000000, inital_fiat_amount : int = 1000000):
         super().__init__()
         self.exchange_name = exchange_name
         self.is_running = True
@@ -637,8 +636,6 @@ class Mediator(Thread):
     
     
     def stop(self) -> None:
-        self.buyer.close()
-        self.seller.close()
         self.is_running = False
     
     
@@ -652,6 +649,9 @@ class Mediator(Thread):
             
             self.buyer.execute_state()
             self.seller.execute_state()
+        
+        self.buyer.close()
+        self.seller.close()
     
     
     def join(self) -> None:
@@ -688,6 +688,7 @@ if __name__ == "__main__":
     end = int(fake_user_num/2)
     
     market = Market("Binance", mediators_num=end)
+    market.start()
     
     signal.signal(signal.SIGINT, market.stop_mediators)
     
