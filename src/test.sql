@@ -90,7 +90,6 @@ CREATE TABLE Exchange (
 	Nome VARCHAR(255) NOT NULL,
 	`Sede Operativa` VARCHAR(255) NOT NULL,
 	`Sede Legale` VARCHAR(255) NOT NULL,
-	Nazione VARCHAR(255) NOT NULL,
 	`Sito web` VARCHAR(255) NOT NULL,
 	Fondatore VARCHAR(255) NOT NULL,
 	UNIQUE (`Sito web`),
