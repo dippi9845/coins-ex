@@ -55,7 +55,11 @@ class Admin:
     
     
     def create_crypto(self):
-        pass
+        
+        nome = self.view.ask_input("Insert crypto name: ")
+        ticker = self.view.ask_input("Insert crypto ticker: ")
+        
+        self.db.insert_into(f"INSERT INTO criptovaluta (Nome, Ticker) VALUES ('{nome}', '{ticker}')")
     
 
 if __name__ == "__main__":
