@@ -79,8 +79,12 @@ CREATE TABLE Dipendente (
 	Nome VARCHAR(255) NOT NULL,
 	Cognome VARCHAR(255) NOT NULL,
 	Residenza VARCHAR(255) NOT NULL,
-	Matricola VARCHAR(255) NOT NULL,
+	Matricola INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	Salario INT NOT NULL CHECK (Salario>0),
+	Presso VARCHAR(255) NOT NULL,
+	Supervisore INT UNSIGNED,
+	FOREIGN KEY (Matricola) REFERENCES Dipendente(Matricola),
+	FOREIGN KEY (Presso) REFERENCES Exchange(Nome),
 	PRIMARY KEY (Matricola));
 
 DROP TABLE IF EXISTS Exchange;

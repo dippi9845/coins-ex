@@ -21,7 +21,6 @@ GRANT ALL PRIVILEGES ON exchanges_tests . *  TO 'db-project'@'localhost';
 -- _____________
 DROP TABLE IF EXISTS ATM;
 CREATE TABLE ATM (
-	exchange_name VARCHAR(255) NOT NULL,
 	Via VARCHAR(255) NOT NULL,
 	Citta VARCHAR(255) NOT NULL,
 	Provincia VARCHAR(255) NOT NULL,
@@ -29,14 +28,13 @@ CREATE TABLE ATM (
 	Modello VARCHAR(255) NOT NULL,
 	`Versione Software` VARCHAR(255) NOT NULL,
 	`Spread attuale` INT NOT NULL CHECK (`Spread attuale` > 0),
-	PRIMARY KEY (`Codice Icentificativo`)
-);
+	PRIMARY KEY (`Codice Icentificativo`));
 
 DROP TABLE IF EXISTS ContoCorrente;
 CREATE TABLE ContoCorrente (
 	UserID INT NOT NULL,
 	Indirizzo VARCHAR(255) NOT NULL,
-	Saldo INT NOT NULL CHECK(Saldo >= 0),
+	Saldo INT NOT NULL CHECK(Saldo > 0),
 	Nome VARCHAR(255) NOT NULL,
 	Ticker VARCHAR(255) NOT NULL,
 	PRIMARY KEY (Indirizzo)
@@ -54,7 +52,7 @@ CREATE TABLE Wallet_Utente (
 
 DROP TABLE IF EXISTS Wallet_ATM;
 CREATE TABLE Wallet_ATM (
-	ATM_ID VARCHAR(255) NOT NULL,
+	ATM_ID INT NOT NULL,
 	Indirizzo VARCHAR(255) NOT NULL,
 	Saldo INT NOT NULL CHECK(Saldo >= 0),
 	Nome VARCHAR(255) NOT NULL,
@@ -81,8 +79,12 @@ CREATE TABLE Dipendente (
 	Nome VARCHAR(255) NOT NULL,
 	Cognome VARCHAR(255) NOT NULL,
 	Residenza VARCHAR(255) NOT NULL,
-	Matricola VARCHAR(255) NOT NULL,
+	Matricola INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	Salario INT NOT NULL CHECK (Salario>0),
+	Presso VARCHAR(255) NOT NULL,
+	Supervisore INT UNSIGNED,
+	FOREIGN KEY (Matricola) REFERENCES Dipendente(Matricola),
+	FOREIGN KEY (Presso) REFERENCES Exchange(Nome),
 	PRIMARY KEY (Matricola));
 
 DROP TABLE IF EXISTS Exchange;
@@ -124,16 +126,12 @@ CREATE TABLE Transazione (
 
 DROP TABLE IF EXISTS Transazione_fisica;
 CREATE TABLE Transazione_fisica (
-	ID INT AUTO_INCREMENT,
-	TransazioneID INT NOT NULL,
-	`Ticker fiat` VARCHAR(255) NOT NULL,
 	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
 	Quantita INT NOT NULL CHECK (Quantita > 0),
 	Spread INT NOT NULL CHECK (Spread > 0),
 	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
 	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
-	PRIMARY KEY (ID)
-);
+	PRIMARY KEY (Data, Ora));
 
 DROP TABLE IF EXISTS Utente;
 CREATE TABLE Utente (
