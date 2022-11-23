@@ -101,6 +101,10 @@ if __name__ == "__main__":
         query = f.read().split(";")
     
     for i in query:
+        
+        if i == "" or i == "\n":
+            continue
+        
         cursor.execute(i)
 
     print("Done")
