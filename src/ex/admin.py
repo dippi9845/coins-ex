@@ -1,8 +1,6 @@
 from view import View, TerminalView
 from database import Database
 from uuid import uuid4
-from time import time
-from random import randbytes
 from hashlib import sha256
 
 class Admin:
@@ -11,7 +9,47 @@ class Admin:
     def __init__(self, view : View) -> None:
         self.view = view
         self.db = Database()
+        self.main()
+        self.functions = {
+            "add fiat" : self.add_fiat,
+            "create exchange" : self.create_exchange,
+            "create atm" : self.create_atm,
+            "create crypto" : self.create_crypto
+        }
     
+    
+    def main(self):
+        self.view.menu("Choose an option", list(self.functions.keys()))
+    
+    
+    def add_workers(self, exchange_name=None):
+        if exchange_name == None:
+            exchange_name = self.view.ask_input("Insert exchange name: ")
+        
+        num = int(self.view.ask_input("how many workers do you want to add? "))
+        for _ in range(num):
+            name = self.view.ask_input("Insert worker name: ")
+            surname = self.view.ask_input("Insert worker surname: ")
+            position = self.view.ask_input("Insert worker role: ")
+            salary = self.view.ask_input("Insert worker salary: ")
+            department = self.view.ask_input("Insert worker department: ")
+            residence = self.view.ask_input("Insert worker residence: ")
+            supervisor = self.view.ask_input("Insert worker supervisor's number: ")
+            
+            if supervisor == '' or supervisor == 'None' or supervisor == 'Null':
+                supervisor = 'NULL'
+            
+            self.db.insert_into(f"""
+                INSERT INTO dipendente (Nome, Cognome, Carica, Reparto, Residenza, Stipendio, Presso, Supervisore)
+                VALUES ('{name}', '{surname}', '{position}', {department}, {residence}, {salary}, '{exchange_name}', {supervisor}))")
+            """)
+    
+    
+    def add_fiat(self):
+        fiat_name = self.view.ask_input("Insert fiat name: ")
+        fiat_ticker = self.view.ask_input("Insert fiat ticker: ")
+        self.db.insert_into(f"INSERT INTO fiat (Nome, Ticker) VALUES ('{fiat_name}', '{fiat_ticker}')")
+        
     
     def create_exchange(self):
         name = self.view.ask_input("Insert exchange name: ")
@@ -21,6 +59,11 @@ class Admin:
         founder = self.view.ask_input("Insert exchange founder: ")
         self.db.insert_into(f"INSERT INTO exchange (Nome, SedeOperativa, SedeLegale, SitoWeb, Fondatore) VALUES ('{name}', '{oh}', '{ro}', '{website}', '{founder}')")
 
+        ch = self.view.ask_input("want to add workesr? (y/n): ")
+        
+        if ch == 'y':
+            self.add_workers(name)
+        
     
     def create_atm(self):
         ex_name = self.view.ask_input("Insert exchange name: ")
