@@ -19,156 +19,178 @@ GRANT ALL PRIVILEGES ON exchanges . * TO 'db-project'@'localhost';
 
 -- TABLE Section
 -- _____________
-DROP TABLE IF EXISTS ATM;
-CREATE TABLE ATM (
-	Via VARCHAR(255) NOT NULL,
-	Citta VARCHAR(255) NOT NULL,
-	Provincia VARCHAR(255) NOT NULL,
-	`Codice Icentificativo` VARCHAR(255) NOT NULL,
-	Modello VARCHAR(255) NOT NULL,
-	`Versione Software` VARCHAR(255) NOT NULL,
-	`Spread attuale` INT NOT NULL CHECK (`Spread attuale` > 0),
-	PRIMARY KEY (`Codice Icentificativo`));
 
-DROP TABLE IF EXISTS ContoCorrente;
-CREATE TABLE ContoCorrente (
-	UserID INT NOT NULL,
-	Indirizzo VARCHAR(255) NOT NULL,
-	Saldo INT NOT NULL CHECK(Saldo > 0),
-	Nome VARCHAR(255) NOT NULL,
-	Ticker VARCHAR(255) NOT NULL,
-	PRIMARY KEY (Indirizzo)
-);
+DROP TABLE IF EXISTS `atm`;
+CREATE TABLE `atm` (
+  `Via` varchar(255) NOT NULL,
+  `Citta` varchar(255) NOT NULL,
+  `Provincia` varchar(255) NOT NULL,
+  `Codice Icentificativo` varchar(255) NOT NULL,
+  `Modello` varchar(255) NOT NULL,
+  `Versione Software` varchar(255) NOT NULL,
+  `Spread attuale` int NOT NULL,
+  PRIMARY KEY (`Codice Icentificativo`),
+  CONSTRAINT `atm_chk_1` CHECK ((`Spread attuale` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Wallet_Utente;
-CREATE TABLE Wallet_Utente (
-	UserID INT NOT NULL,
-	Indirizzo VARCHAR(255) NOT NULL,
-	Saldo INT NOT NULL CHECK(Saldo >= 0),
-	Nome VARCHAR(255) NOT NULL,
-	Ticker VARCHAR(255) NOT NULL,
-	PRIMARY KEY (Indirizzo)
-);
+DROP TABLE IF EXISTS `contocorrente`;
+CREATE TABLE `contocorrente` (
+  `UserID` int NOT NULL,
+  `Indirizzo` varchar(255) NOT NULL,
+  `Saldo` int NOT NULL,
+  `Nome` varchar(255) NOT NULL,
+  `Ticker` varchar(255) NOT NULL,
+  PRIMARY KEY (`Indirizzo`),
+  CONSTRAINT `contocorrente_chk_1` CHECK ((`Saldo` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Wallet_ATM;
-CREATE TABLE Wallet_ATM (
-	ATM_ID INT NOT NULL,
-	Indirizzo VARCHAR(255) NOT NULL,
-	Saldo INT NOT NULL CHECK(Saldo >= 0),
-	Nome VARCHAR(255) NOT NULL,
-	Ticker VARCHAR(255) NOT NULL,
-	PRIMARY KEY (Indirizzo)
-);
+DROP TABLE IF EXISTS `wallet_utente`;
+CREATE TABLE `wallet_utente` (
+  `UserID` int NOT NULL,
+  `Indirizzo` varchar(255) NOT NULL,
+  `Saldo` int NOT NULL,
+  `Nome` varchar(255) NOT NULL,
+  `Ticker` varchar(255) NOT NULL,
+  PRIMARY KEY (`Indirizzo`),
+  CONSTRAINT `wallet_utente_chk_1` CHECK ((`Saldo` >= 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Fiat;
-CREATE TABLE Fiat (
-	Nome VARCHAR(255) NOT NULL,
-	Ticker VARCHAR(255) NOT NULL,
-	PRIMARY KEY (Ticker));
+DROP TABLE IF EXISTS `wallet_atm`;
+CREATE TABLE `wallet_atm` (
+  `ATM_ID` int NOT NULL,
+  `Indirizzo` varchar(255) NOT NULL,
+  `Saldo` int NOT NULL,
+  `Nome` varchar(255) NOT NULL,
+  `Ticker` varchar(255) NOT NULL,
+  PRIMARY KEY (`Indirizzo`),
+  CONSTRAINT `wallet_atm_chk_1` CHECK ((`Saldo` >= 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Crypto;
-CREATE TABLE Crypto (
-	Nome VARCHAR(255) NOT NULL,
-	Ticker VARCHAR(255) NOT NULL,
-	PRIMARY KEY (Ticker));
+DROP TABLE IF EXISTS `fiat`;
+CREATE TABLE `fiat` (
+  `Nome` varchar(255) NOT NULL,
+  `Ticker` varchar(255) NOT NULL,
+  PRIMARY KEY (`Ticker`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Dipendente;
-CREATE TABLE Dipendente (
-	Carica VARCHAR(255) NOT NULL,
-	Reparto VARCHAR(255) NOT NULL,
-	Nome VARCHAR(255) NOT NULL,
-	Cognome VARCHAR(255) NOT NULL,
-	Residenza VARCHAR(255) NOT NULL,
-	Matricola INT UNSIGNED NOT NULL AUTO_INCREMENT,
-	Salario INT NOT NULL CHECK (Salario>0),
-	Presso VARCHAR(255) NOT NULL,
-	Supervisore INT UNSIGNED,
-	FOREIGN KEY (Matricola) REFERENCES Dipendente(Matricola),
-	FOREIGN KEY (Presso) REFERENCES Exchange(Nome),
-	PRIMARY KEY (Matricola));
+DROP TABLE IF EXISTS `crypto`;
+CREATE TABLE `crypto` (
+  `Nome` varchar(255) NOT NULL,
+  `Ticker` varchar(255) NOT NULL,
+  PRIMARY KEY (`Ticker`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Exchange;
-CREATE TABLE Exchange (
-	Nome VARCHAR(255) NOT NULL,
-	`Sede Operativa` VARCHAR(255) NOT NULL,
-	`Sede Legale` VARCHAR(255) NOT NULL,
-	`Sito web` VARCHAR(255) NOT NULL,
-	Fondatore VARCHAR(255) NOT NULL,
-	UNIQUE (`Sito web`),
-	UNIQUE (`Sede Operativa`),
-	UNIQUE (`Sede Legale`),
-	PRIMARY KEY (Nome));
+DROP TABLE IF EXISTS `dipendente`;
+CREATE TABLE `dipendente` (
+  `Carica` varchar(255) NOT NULL,
+  `Reparto` varchar(255) NOT NULL,
+  `Nome` varchar(255) NOT NULL,
+  `Cognome` varchar(255) NOT NULL,
+  `Residenza` varchar(255) NOT NULL,
+  `Matricola` int unsigned NOT NULL AUTO_INCREMENT,
+  `Salario` int NOT NULL,
+  `Presso` varchar(255) NOT NULL,
+  `Supervisore` int unsigned DEFAULT NULL,
+  PRIMARY KEY (`Matricola`),
+  KEY `supervisione_idx` (`Supervisore`),
+  KEY `azienda_idx` (`Presso`),
+  CONSTRAINT `azienda` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`),
+  CONSTRAINT `supervisione` FOREIGN KEY (`Supervisore`) REFERENCES `dipendente` (`Matricola`),
+  CONSTRAINT `dipendente_chk_1` CHECK ((`Salario` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Ordine;
-CREATE TABLE Ordine (
-	OrdineID INT AUTO_INCREMENT,
-	UserID INT NOT NULL,
-	`Ticker compro` VARCHAR(255) NOT NULL,
-	`Ticker vendo` VARCHAR(255) NOT NULL,
-	`Quantita compro` INT NOT NULL CHECK(`Quantita compro` > 0),
-	`Quantita vendo` INT NOT NULL CHECK(`Quantita vendo` > 0),
-	`Indirizzo compro` VARCHAR(255) NOT NULL,
-	`Indirizzo vendo` VARCHAR(255) NOT NULL,
-	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
-	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
-	PRIMARY KEY (OrdineID));
+DROP TABLE IF EXISTS `exchange`;
+CREATE TABLE `exchange` (
+  `Nome` varchar(255) NOT NULL,
+  `Sede Operativa` varchar(255) NOT NULL,
+  `Sede Legale` varchar(255) NOT NULL,
+  `Sito web` varchar(255) NOT NULL,
+  `Fondatore` varchar(255) NOT NULL,
+  PRIMARY KEY (`Nome`),
+  UNIQUE KEY `Sito web` (`Sito web`),
+  UNIQUE KEY `Sede Operativa` (`Sede Operativa`),
+  UNIQUE KEY `Sede Legale` (`Sede Legale`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Transazione;
-CREATE TABLE Transazione (
-	ID INT AUTO_INCREMENT,
-	`Indirizzo Entrata` VARCHAR(255) NOT NULL,
-	`Indirizzo Uscita` VARCHAR(255) NOT NULL,
-	Ticker VARCHAR(255) NOT NULL,
-	Quantita INT NOT NULL CHECK (Quantita > 0),
-	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
-	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
-	PRIMARY KEY (ID));
+DROP TABLE IF EXISTS `ordine`;
+CREATE TABLE `ordine` (
+  `OrdineID` int NOT NULL AUTO_INCREMENT,
+  `UserID` int NOT NULL,
+  `Ticker compro` varchar(255) NOT NULL,
+  `Ticker vendo` varchar(255) NOT NULL,
+  `Quantita compro` int NOT NULL,
+  `Quantita vendo` int NOT NULL,
+  `Indirizzo compro` varchar(255) NOT NULL,
+  `Indirizzo vendo` varchar(255) NOT NULL,
+  `Data` date NOT NULL DEFAULT (curdate()),
+  `Ora` time NOT NULL DEFAULT (curtime()),
+  PRIMARY KEY (`OrdineID`),
+  CONSTRAINT `ordine_chk_1` CHECK ((`Quantita compro` > 0)),
+  CONSTRAINT `ordine_chk_2` CHECK ((`Quantita vendo` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Transazione_fisica;
-CREATE TABLE Transazione_fisica (
-	`Cambio attuale` INT NOT NULL CHECK (`Cambio attuale` > 0),
-	Quantita INT NOT NULL CHECK (Quantita > 0),
-	Spread INT NOT NULL CHECK (Spread > 0),
-	Data DATE NOT NULL DEFAULT(CURRENT_DATE),
-	Ora TIME NOT NULL DEFAULT(CURRENT_TIME),
-	PRIMARY KEY (Data, Ora));
+DROP TABLE IF EXISTS `transazione`;
+CREATE TABLE `transazione` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `Indirizzo Entrata` varchar(255) NOT NULL,
+  `Indirizzo Uscita` varchar(255) NOT NULL,
+  `Ticker` varchar(255) NOT NULL,
+  `Quantita` int NOT NULL,
+  `Data` date NOT NULL DEFAULT (curdate()),
+  `Ora` time NOT NULL DEFAULT (curtime()),
+  PRIMARY KEY (`ID`),
+  CONSTRAINT `transazione_chk_1` CHECK ((`Quantita` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS Utente;
-CREATE TABLE Utente (
-	ID INT AUTO_INCREMENT,
-	Email VARCHAR(255) NOT NULL,
-	Password VARCHAR(255) NOT NULL,
-	Nome VARCHAR(255) NOT NULL,
-	Cognome VARCHAR(255) NOT NULL,
-	Nazionalita VARCHAR(255) NOT NULL,
-	Residenza VARCHAR(255) NOT NULL,
-	`Numero Di Telefono` VARCHAR(255) NOT NULL,
-	`Data di nascita` DATE NOT NULL,
-	`Codice Fiscale` VARCHAR(255) NOT NULL,
-	PRIMARY KEY (ID),
-	UNIQUE (`Codice Fiscale`));
+DROP TABLE IF EXISTS `transazione_fisica`;
+CREATE TABLE `transazione_fisica` (
+  `Cambio attuale` int NOT NULL,
+  `Quantita` int NOT NULL,
+  `Spread` int NOT NULL,
+  `Data` date NOT NULL DEFAULT (curdate()),
+  `Ora` time NOT NULL DEFAULT (curtime()),
+  PRIMARY KEY (`Data`,`Ora`),
+  CONSTRAINT `transazione_fisica_chk_1` CHECK ((`Cambio attuale` > 0)),
+  CONSTRAINT `transazione_fisica_chk_2` CHECK ((`Quantita` > 0)),
+  CONSTRAINT `transazione_fisica_chk_3` CHECK ((`Spread` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- TABLES RELATIONALS
+DROP TABLE IF EXISTS `utente`;
+CREATE TABLE `utente` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `Email` varchar(255) NOT NULL,
+  `Password` varchar(255) NOT NULL,
+  `Nome` varchar(255) NOT NULL,
+  `Cognome` varchar(255) NOT NULL,
+  `Nazionalita` varchar(255) NOT NULL,
+  `Residenza` varchar(255) NOT NULL,
+  `Numero Di Telefono` varchar(255) NOT NULL,
+  `Data di nascita` date NOT NULL,
+  `Codice Fiscale` varchar(255) NOT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `Codice Fiscale` (`Codice Fiscale`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS registrati;
-CREATE TABLE registrati (
-	ID INT NOT NULL,
-	Nome VARCHAR(255) NOT NULL);
+DROP TABLE IF EXISTS `registrati`;
+CREATE TABLE `registrati` (
+  `ID` int NOT NULL,
+  `Nome` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS scambio;
-CREATE TABLE scambio (
-	`Transazione crypto` INT NOT NULL,
-	`Transazione fiat` INT NOT NULL
-);
+DROP TABLE IF EXISTS `scambio`;
+CREATE TABLE `scambio` (
+  `Transazione crypto` int NOT NULL,
+  `Transazione fiat` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS contante;
-CREATE TABLE contante (
-	`Ticker fiat` VARCHAR(255) NOT NULL,
-	`Codice ATM` VARCHAR(255) NOT NULL,
-	Quantita INT NOT NULL CHECK (Quantita >= 0)
-);
+DROP TABLE IF EXISTS `contante`;
+CREATE TABLE `contante` (
+  `Ticker fiat` varchar(255) NOT NULL,
+  `Codice ATM` varchar(255) NOT NULL,
+  `Quantita` int NOT NULL,
+  CONSTRAINT `contante_chk_1` CHECK ((`Quantita` >= 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Instances needed section
 INSERT INTO fiat (Nome, Ticker)
 VALUES
 ("Euro, european", "EUR"),
@@ -179,10 +201,9 @@ VALUES
 ("Bitcoin", "BTC"),
 ("Etherium", "ETH");
 
--- ConstraINTs Section
--- ___________________
 
 
--- Index Section
--- _____________
-
+-- CREATE INDEX FK_Dipendente_Dipendente ON Dipendente (Supervisore);
+-- CREATE INDEX FK_Exchange_Dipendente ON Dipendente (Presso);
+-- ALTER TABLE Dipendente ADD CONSTRAINT FK_Dipendente_Dipendente FOREIGN KEY (Supervisore) REFERENCES Dipendente(Matricola);
+-- ALTER TABLE Dipendente ADD CONSTRAINT FK_Exchange_Dipendente FOREIGN KEY (Presso) REFERENCES Dipendente(Presso);
