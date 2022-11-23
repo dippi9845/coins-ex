@@ -22,14 +22,14 @@ GRANT ALL PRIVILEGES ON exchanges . * TO 'db-project'@'localhost';
 
 DROP TABLE IF EXISTS `atm`;
 CREATE TABLE `atm` (
+  `ID` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `Via` varchar(255) NOT NULL,
   `Citta` varchar(255) NOT NULL,
   `Provincia` varchar(255) NOT NULL,
-  `Codice Icentificativo` varchar(255) NOT NULL,
   `Modello` varchar(255) NOT NULL,
   `Versione Software` varchar(255) NOT NULL,
   `Spread attuale` int NOT NULL,
-  PRIMARY KEY (`Codice Icentificativo`),
+  PRIMARY KEY (`ID`),
   CONSTRAINT `atm_chk_1` CHECK ((`Spread attuale` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
