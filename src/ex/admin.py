@@ -9,17 +9,28 @@ class Admin:
     def __init__(self, view : View) -> None:
         self.view = view
         self.db = Database()
-        self.main()
         self.functions = {
             "add fiat" : self.add_fiat,
             "create exchange" : self.create_exchange,
             "create atm" : self.create_atm,
             "create crypto" : self.create_crypto
         }
+        self.main()
     
     
     def main(self):
-        self.view.menu("Choose an option", list(self.functions.keys()))
+        possibilities = set(self.functions.keys())
+        possibilities.update(["exit"])
+        
+        while True:
+        
+            choice = self.view.menu("Choose an option", possibilities)
+        
+            if choice == "" or choice == "exit":
+                break
+        
+            self.functions[choice]()
+        
     
     
     def add_workers(self, exchange_name=None):
@@ -57,7 +68,7 @@ class Admin:
         ro = self.view.ask_input("Insert exchange registered office: ")
         website = self.view.ask_input("Insert exchange website: ")
         founder = self.view.ask_input("Insert exchange founder: ")
-        self.db.insert_into(f"INSERT INTO exchange (Nome, SedeOperativa, SedeLegale, SitoWeb, Fondatore) VALUES ('{name}', '{oh}', '{ro}', '{website}', '{founder}')")
+        self.db.insert_into(f"INSERT INTO exchange (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore) VALUES ('{name}', '{oh}', '{ro}', '{website}', '{founder}')")
 
         ch = self.view.ask_input("want to add workesr? (y/n): ")
         
@@ -106,4 +117,4 @@ class Admin:
     
 
 if __name__ == "__main__":
-    pass
+    Admin(TerminalView())
