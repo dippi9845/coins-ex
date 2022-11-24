@@ -368,10 +368,10 @@ class User:
                 continue
 
             self._set_exchange(ch)
-
-            ch = self.__view.menu(f"Do you want to register or access to {self.__exchange_name}", ["register", "access"])
+            ex = ch
+            ch = self.__view.menu(f"Do you want to register or access to {self.__exchange_name} ?", ["register", "access"])
             
-            if self.access_exchange[ch]():
+            if self.access_exchange[ch](ex):
                 while ch != "exit":
                     ch = self.__view.menu(f"What do you want to do on {self.__exchange_name} ?", self.exchange_commands.keys())
                     self.exchange_commands[ch]()
