@@ -39,20 +39,16 @@ class Admin:
         
         num = int(self.view.ask_input("how many workers do you want to add? "))
         for _ in range(num):
-            name = self.view.ask_input("Insert worker name: ")
-            surname = self.view.ask_input("Insert worker surname: ")
-            position = self.view.ask_input("Insert worker role: ")
-            salary = self.view.ask_input("Insert worker salary: ")
-            department = self.view.ask_input("Insert worker department: ")
-            residence = self.view.ask_input("Insert worker residence: ")
-            supervisor = self.view.ask_input("Insert worker supervisor's number: ")
             
+            data = ['name', 'surname', 'position', 'salary', 'department', 'residence', 'supervisor']
+            worker_data = self.view.ask_for_multiples("Insert worker", data)
+
             if supervisor == '' or supervisor == 'None' or supervisor == 'Null':
                 supervisor = 'NULL'
             
             self.db.insert_into(f"""
                 INSERT INTO dipendente (Nome, Cognome, Carica, Reparto, Residenza, Stipendio, Presso, Supervisore)
-                VALUES ('{name}', '{surname}', '{position}', {department}, {residence}, {salary}, '{exchange_name}', {supervisor}))")
+                VALUES ('{worker_data['name']}', '{worker_data['surname']}', '{worker_data['position']}', {worker_data['department']}, {worker_data['residence']}, {worker_data['salary']}, '{exchange_name}', {worker_data['supervisor']}))")
             """)
     
     
@@ -63,48 +59,43 @@ class Admin:
         
     
     def create_exchange(self):
-        name = self.view.ask_input("Insert exchange name: ")
-        oh = self.view.ask_input("Insert exchange operational headquarters: ")
-        ro = self.view.ask_input("Insert exchange registered office: ")
-        website = self.view.ask_input("Insert exchange website: ")
-        founder = self.view.ask_input("Insert exchange founder: ")
-        self.db.insert_into(f"INSERT INTO exchange (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore) VALUES ('{name}', '{oh}', '{ro}', '{website}', '{founder}')")
+
+        data = ['name', 'operational headquarters', 'registered office', 'website', 'founder']
+        exchange_data = self.view.ask_for_multiples("Insert exchange ", data)
+
+        self.db.insert_into(f"""
+        INSERT INTO exchange (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
+        VALUES ('{exchange_data['name']}', '{exchange_data['operational headquarters']}', '{exchange_data['registered office']}', '{exchange_data['website']}', '{exchange_data['founder']}')
+        """)
 
         ch = self.view.ask_input("want to add workesr? (y/n): ")
         
         if ch == 'y':
-            self.add_workers(name)
+            self.add_workers(exchange_data['name'])
         
     
     def create_atm(self):
-        ex_name = self.view.ask_input("Insert exchange name: ")
-        street = self.view.ask_input("Insert atm street: ")
-        city = self.view.ask_input("Insert atm city: ")
-        province = self.view.ask_input("Insert atm province: ")
-        model = self.view.ask_input("Insert atm model: ")
-        software_version = self.view.ask_input("Insert atm software version: ")
-        spread = self.view.ask_input("Insert atm initial spread: ")
-        fiat_ticker = self.view.ask_input("Insert atm fiat ticker: ")
-        fiat_amount = self.view.ask_input("Insert atm fiat amount: ")
-        crypto_ticker = self.view.ask_input("Insert atm crypto ticker: ")
-        crypto_amount = self.view.ask_input("Insert atm crypto amount: ")
+
+        data = ['ex_name', 'street', 'city', 'province', 'model', 'software_version', 'spread', 'fiat_ticker', 'fiat_amount', 'crypto_ticker', 'crypto_amount']
+        atm_data = self.view.ask_for_multiples("Insert atm", data)
+
         atm_id = str(uuid4())
         
         self.db.insert_into(f"""
             INSERT INTO ATM 
             (exchange_name, Via, Citta, Provincia, `Codice Icentificativo`, Modello, `Versione Software`, `Spread attuale`)
             VALUES
-            ('{ex_name}', '{street}', '{city}', '{province}', '{atm_id}', '{model}', '{software_version}', {spread * 100})
+            ('{atm_data['ex_name']}', '{atm_data['street']}', '{atm_data['city']}', '{atm_data['province']}', '{atm_data['atm_id']}', '{atm_data['model']}', '{atm_data['software_version']}', {atm_data['spread'] * 100})
         """)
         
         self.db.insert_into(f"""
         INSERT INTO contante (`Ticker fiat`, `Codice ATM`, Quantita)
-        VALUES ('{fiat_ticker}', '{atm_id}', {fiat_amount})
+        VALUES ('{atm_data['fiat_ticker']}', '{atm_id}', {atm_data['fiat_amount']})
         """)
         
         self.db.insert_into(f"""
         INSERT INTO Wallet_ATM (ATM_ID, Indirizzo, Saldo, Nome, Ticker)
-        VALUES ('{atm_id}', '{sha256(atm_id.encode())}', {crypto_amount}, '{ex_name}', '{crypto_ticker}')
+        VALUES ('{atm_id}', '{sha256(atm_id.encode())}', {atm_data['crypto_amount']}, '{atm_data['ex_name']}', '{atm_data['crypto_ticker']}')
         """)
     
     

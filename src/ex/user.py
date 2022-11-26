@@ -72,17 +72,11 @@ class User:
         return ticker in cryptos_ticker
 
     def _first_access(self):
-        
-        name = self.__view.ask_input("Insert Name -> ")
-        surname = self.__view.ask_input("Insert Surname -> ")
-        email = self.__view.ask_input("Insert Emai -> ")
-        password = self.__view.ask_input("Insert Password -> ")
-        fiscal_code = self.__view.ask_input("Insert Fiscal Code -> ")
-        nationality = self.__view.ask_input("Insert Natinality -> ")
-        telephone = self.__view.ask_input("Insert Telephone -> ")
-        residence = self.__view.ask_input("Insert Residence -> ")
-        bith_day = self.__view.ask_input("Insert Bith Day -> ")
 
+        data = ['name', 'surname', 'email', 'password', 'fiscal_code', 'national' 'telephone', 'residence', 'birth_day']
+        
+        user_data = self.__view.ask_for_multiples(data)
+        
         to_register = self.__view.menu("Choose the first exchange", self._current_exchanges())
 
         # QUERY insert utente instance
@@ -90,7 +84,7 @@ class User:
         self.__database.insert_into(f'''
         INSERT INTO utente
         (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        VALUES('{user_data['name']}', '{user_data['surname']}', '{user_data['email']}', '{user_data['password']}', '{user_data['fiscal_code']}', '{user_data['national']}', '{user_data['telephone']}', '{user_data['residence']}', '{user_data['birth_day']}')
         ''')
 
         self.__access_info = self.__database.insered_id()
@@ -126,12 +120,12 @@ class User:
         Asks only the credentials
         '''
         
-        email = self.__view.ask_input("insert email -> ")
-        password = self.__view.ask_input("insert password -> ")
+        data = ['email', 'password']
+        user_data = self.__view.ask_for_multiples(data)
         
         # QUERY get id
         # TESTED
-        resp = self.__database.select(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")
+        resp = self.__database.select(f"SELECT ID FROM utente WHERE Email = '{user_data['email']}' AND Password = '{user_data['password']}'")
         
         if len(resp) == 0:
             return False

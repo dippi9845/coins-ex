@@ -1,5 +1,7 @@
 from abc import abstractmethod
 from typing import Any
+from os import system
+
 
 class View:
 
@@ -13,6 +15,14 @@ class View:
 
     @abstractmethod
     def menu(self, msg : str, choises : list[str]) -> str:
+        pass
+
+    @abstractmethod
+    def chagne_view(self, name_view : str) -> Any:
+        pass
+    
+    @abstractmethod
+    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
         pass
 
 
@@ -36,3 +46,16 @@ class TerminalView(View):
         else:
             self.show_message(f"{ch} is not an option, retry")
             return self.menu(msg, choises, list_char=list_char)
+    
+    
+    def chagne_view(self, name_view : str) -> Any:
+        system("cls")
+    
+    
+    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+        self.show_message(msg)
+        rtr = {}
+        for value in values:
+            rtr[value] = self.ask_input(f"{value}: ")
+        
+        return rtr
