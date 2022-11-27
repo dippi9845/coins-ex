@@ -37,7 +37,7 @@ class TerminalView(View):
     def menu(self, msg : str, choises : list[str], list_char = "-") -> str:
         self.show_message(msg)
         #self.show_message(list_char)
-        self.show_message(f"\n{list_char}".join(choises))
+        self.show_message(f"\n{list_char}" + f"\n{list_char}".join(choises))
         ch = self.ask_input("\n-> ")
         
         if ch in choises:
