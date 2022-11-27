@@ -8,14 +8,10 @@
 
 CREATE USER IF NOT EXISTS 'db-project'@'localhost' IDENTIFIED BY 'db-project';
 
-DROP DATABASE IF EXISTS exchanges_tests;
-CREATE DATABASE exchanges_tests;
-USE exchanges_tests;
-
 GRANT ALL PRIVILEGES ON exchanges_tests . * TO 'db-project'@'localhost';
 
-CREATE DATABASE  IF NOT EXISTS `exchanges` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `exchanges`;
+CREATE DATABASE  IF NOT EXISTS `exchanges_tests` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `exchanges_tests`;
 -- MySQL dump 10.13  Distrib 8.0.30, for Win64 (x86_64)
 --
 -- Host: localhost    Database: exchanges
@@ -48,7 +44,10 @@ CREATE TABLE `atm` (
   `Modello` varchar(255) NOT NULL,
   `Versione Software` varchar(255) NOT NULL,
   `Spread attuale` int NOT NULL,
+  `Presso` varchar(255) NOT NULL,
   PRIMARY KEY (`Codice Icentificativo`),
+  KEY `exchange_idx` (`Presso`),
+  CONSTRAINT `exchange` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`),
   CONSTRAINT `atm_chk_1` CHECK ((`Spread attuale` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -323,12 +322,12 @@ CREATE TABLE `wallet_utente` (
 -- Dump completed on 2022-11-27 16:56:08
 
 
-INSERT INTO fiat (Nome, Ticker)
+INSERT INTO `exchanges_tests`.`fiat` (Nome, Ticker)
 VALUES
 ("Euro, european", "EUR"),
 ("US dollar", "USD");
 
-INSERT INTO crypto (Nome, Ticker)
+INSERT INTO `exchanges_tests`.`crypto` (Nome, Ticker)
 VALUES
 ("Bitcoin", "BTC"),
 ("Etherium", "ETH");

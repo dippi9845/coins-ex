@@ -44,7 +44,10 @@ CREATE TABLE `atm` (
   `Modello` varchar(255) NOT NULL,
   `Versione Software` varchar(255) NOT NULL,
   `Spread attuale` int NOT NULL,
+  `Presso` varchar(255) NOT NULL,
   PRIMARY KEY (`Codice Icentificativo`),
+  KEY `exchange_idx` (`Presso`),
+  CONSTRAINT `exchange` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`),
   CONSTRAINT `atm_chk_1` CHECK ((`Spread attuale` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

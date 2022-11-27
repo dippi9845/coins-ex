@@ -132,15 +132,26 @@ class DatabseTest(unittest.TestCase):
     def __create_atm(self, fiat_ticker="EUR", fiat_amount=1000, crypto_ticker="BTC", crypto_amount=10000, spread=0.1, excahnge_name=None) -> int:
         if excahnge_name is None:
             excahnge_name = self.__random_string()
+            sede_operativa = self.__random_string()
+            sede_legale = self.__random_string()
+            sitoweb = "https://" + self.__random_string() + ".com"
+            fondatore = self.__random_string()
+
+            self.db.insert_into(f'''
+            INSERT INTO exchange
+            (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
+            VALUES("{excahnge_name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
+            ''')
         
-        atm_id = self.__random_code()
         self.db.insert_into(f"""
         INSERT INTO ATM 
-        (exchange_name, Via, Citta, Provincia, `Codice Icentificativo`, Modello, `Versione Software`, `Spread attuale`)
+        (Presso, Via, Citta, Provincia, Modello, `Versione Software`, `Spread attuale`)
         VALUES
-        ('{excahnge_name}', '{self.__random_string()}', '{self.__random_string()}', '{self.__random_string()}', '{atm_id}',
+        ('{excahnge_name}', '{self.__random_string()}', '{self.__random_string()}', '{self.__random_string()}',
         '{self.__random_string()}', '{self.__random_string()}', {spread * 100})
         """)
+        
+        atm_id = self.db.insered_id()
         
         self.db.insert_into(f"""
         INSERT INTO contante (`Ticker fiat`, `Codice ATM`, Quantita)
@@ -168,49 +179,46 @@ class DatabseTest(unittest.TestCase):
 
         self.db.insert_into(f'''
         INSERT INTO utente
-        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
         
         user_id = self.db.insered_id()
 
         data = self.db.select(f'''
-        SELECT Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`
+        SELECT Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`
         FROM utente
         WHERE ID={user_id}
         ''')
         data = data[0]
         self.assertEqual(data[0], name, "name is different")
         self.assertEqual(data[1], surname, "surname is different")
-        self.assertEqual(data[2], email, "email is different")
-        self.assertEqual(data[3], password, "password is different")
-        self.assertEqual(data[4], fiscal_code, "fiscal_code is different")
-        self.assertEqual(data[5], nationality, "nationality is different")
-        self.assertEqual(data[6], telephone, "telephone is different")
-        self.assertEqual(data[7], residence, "residence is different")
-        self.assertEqual(data[8].strftime('%Y-%m-%d'), str(bith_day), "bith_day is different")
+        self.assertEqual(data[2], fiscal_code, "fiscal_code is different")
+        self.assertEqual(data[3], nationality, "nationality is different")
+        self.assertEqual(data[4], telephone, "telephone is different")
+        self.assertEqual(data[5], residence, "residence is different")
+        self.assertEqual(data[6].strftime('%Y-%m-%d'), str(bith_day), "bith_day is different")
 
-        test_id = self.db.select(f"SELECT ID FROM utente WHERE Email = '{email}' AND Password = '{password}'")[0][0]
+        test_id = self.db.select(f"SELECT ID FROM utente WHERE `Codice Fiscale` = '{fiscal_code}'")[0][0]
         self.assertEqual(user_id, test_id)
     
     def test_create_exchange(self):
         name = self.__random_string()
         sede_operativa = self.__random_string()
         sede_legale = self.__random_string()
-        sitoweb = "https://" + self.__random_string()
-        nation = self.__random_string()
+        sitoweb = "https://" + self.__random_string() + ".com"
         fondatore = self.__random_string()
 
         self.db.insert_into(f'''
         INSERT INTO exchange
-        (Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore)
-        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{nation}", "{sitoweb}", "{fondatore}")
+        (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
+        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
         ''')
         
         user_id = self.db.insered_id()
 
         data = self.db.select(f'''
-        SELECT Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore
+        SELECT Nome, `Sede Operativa`, `Sede Legale`,`Sito web`, Fondatore
         FROM exchange
         WHERE Nome='{name}'
         ''')
@@ -219,23 +227,21 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(data[0], name, "name is different")
         self.assertEqual(data[1], sede_operativa, "surname is different")
         self.assertEqual(data[2], sede_legale, "email is different")
-        self.assertEqual(data[3], nation, "password is different")
-        self.assertEqual(data[4], sitoweb, "fiscal_code is different")
-        self.assertEqual(data[5], fondatore, "telephone is different")
+        self.assertEqual(data[3], sitoweb, "fiscal_code is different")
+        self.assertEqual(data[4], fondatore, "telephone is different")
 
     def test_register_to_exchange(self):
 
         name = self.__random_string()
         sede_operativa = self.__random_string()
         sede_legale = self.__random_string()
-        sitoweb = "https://" + self.__random_string()
-        nation = self.__random_string()
+        sitoweb = "https://" + self.__random_string() + ".com"
         fondatore = self.__random_string()
 
         self.db.insert_into(f'''
         INSERT INTO exchange
-        (Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore)
-        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{nation}", "{sitoweb}", "{fondatore}")
+        (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
+        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
         ''')
 
         name = self.__random_string()
@@ -250,14 +256,14 @@ class DatabseTest(unittest.TestCase):
 
         self.db.insert_into(f'''
         INSERT INTO utente
-        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
         
         user_id = self.db.insered_id()
 
         #self.db.delete(f"DELETE FROM exchange WHERE Nome='{name}'")
-        self.db.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({user_id}, '{name}')")
+        self.db.insert_into(f"INSERT INTO registrati (ID, Email, Password, Nome) VALUES ({user_id}, '{email}', '{password}', '{name}')")
 
         check_name = self.db.select(f"SELECT Nome FROM registrati WHERE ID = {user_id}")[0][0]
         self.assertEqual(check_name, name)
@@ -270,14 +276,13 @@ class DatabseTest(unittest.TestCase):
         name = self.__random_string()
         sede_operativa = self.__random_string()
         sede_legale = self.__random_string()
-        sitoweb = "https://" + self.__random_string()
-        nation = self.__random_string()
+        sitoweb = "https://" + self.__random_string() + ".com"
         fondatore = self.__random_string()
 
         self.db.insert_into(f'''
         INSERT INTO exchange
-        (Nome, `Sede Operativa`, `Sede Legale`, Nazione, `Sito web`, Fondatore)
-        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{nation}", "{sitoweb}", "{fondatore}")
+        (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
+        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
         ''')
 
         name = self.__random_string()
@@ -292,11 +297,13 @@ class DatabseTest(unittest.TestCase):
 
         self.db.insert_into(f'''
         INSERT INTO utente
-        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
 
         user_id = self.db.insered_id()
+
+        self.db.insert_into(f"INSERT INTO registrati (ID, Email, Password, Nome) VALUES ({user_id}, '{email}', '{password}', '{name}')")
 
         to_hash = str(user_id).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)
         # QUERY create an istance of contocorrente
@@ -365,8 +372,8 @@ class DatabseTest(unittest.TestCase):
 
         self.db.insert_into(f'''
         INSERT INTO utente
-        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
 
         user_id = self.db.insered_id()
@@ -687,7 +694,7 @@ class DatabseTest(unittest.TestCase):
 
         # decrease the amount of fiat money in the atm
         self.db.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
-        self.db.insert_into(f"INSERT INTO transazione_fisica (TransazioneID, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
+        self.db.insert_into(f"INSERT INTO transazione_fisica (`Transazione Virtuale`, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
         
         actual = self.db.select(f"SELECT Saldo FROM Wallet_ATM WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
         self.assertEqual(actual, initial_crypto_amont + crypto_amount)
@@ -745,7 +752,7 @@ class DatabseTest(unittest.TestCase):
 
         # decrease the amount of fiat money in the atm
         self.db.update(f"UPDATE contante SET Quantita = Quantita + {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
-        self.db.insert_into(f"INSERT INTO transazione_fisica (TransazioneID, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
+        self.db.insert_into(f"INSERT INTO transazione_fisica (`Transazione Virtuale`, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
         
         actual = self.db.select(f"SELECT Saldo FROM Wallet_ATM WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
         self.assertEqual(actual, initial_crypto_amont - crypto_amount)
@@ -790,6 +797,10 @@ if __name__ == "__main__":
             query = f.read().split(";")
         
         for i in query:
+        
+            if i == "" or i == "\n":
+                continue
+            
             executor.execute(i)
     
     elif cmd == "tests":
