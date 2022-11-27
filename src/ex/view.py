@@ -59,3 +59,34 @@ class TerminalView(View):
             rtr[value] = self.ask_input(f"{value}: ")
         
         return rtr
+
+class QueueView(View):
+    
+    def __init__(self, values : str | list[str], sep : str=" ") -> None:
+        super().__init__()
+        self.queue = values.split(sep) if isinstance(values, str) else values
+    
+    
+    def ask_input(self, msg : str) -> str:
+        return self.queue.pop(0)
+
+    
+    def show_message(self, msg : str) -> Any:
+        pass
+
+
+    def menu(self, msg : str, choises : list[str]) -> str:
+        return self.queue.pop(0)
+
+
+    def chagne_view(self, name_view : str) -> Any:
+        pass
+    
+
+    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+        rtr = {}
+        
+        for i in values:
+            rtr[i] = self.queue.pop(0)
+        
+        return rtr
