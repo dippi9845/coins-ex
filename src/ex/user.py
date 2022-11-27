@@ -73,7 +73,7 @@ class User:
 
     def _first_access(self):
 
-        data = ['name', 'surname', 'email', 'password', 'fiscal_code', 'national' 'telephone', 'residence', 'birth_day']
+        data = ['name', 'surname', 'fiscal_code', 'national' 'telephone', 'residence', 'birth_day']
         
         user_data = self.__view.ask_for_multiples(data)
         
@@ -83,8 +83,8 @@ class User:
         # TESTED
         self.__database.insert_into(f'''
         INSERT INTO utente
-        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{user_data['name']}', '{user_data['surname']}', '{user_data['email']}', '{user_data['password']}', '{user_data['fiscal_code']}', '{user_data['national']}', '{user_data['telephone']}', '{user_data['residence']}', '{user_data['birth_day']}')
+        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{user_data['name']}', '{user_data['surname']}', '{user_data['fiscal_code']}', '{user_data['national']}', '{user_data['telephone']}', '{user_data['residence']}', '{user_data['birth_day']}')
         ''')
 
         self.__access_info = self.__database.insered_id()
@@ -95,12 +95,17 @@ class User:
         '''
         register the user to the exchange provided as paramenter
         '''
-        if self.__access_info is not None:
-            # QUERY register to that exchange
-            # TESTED
-            self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{exchange_name}')")
-            self._create_fiat_account(exchange_name)
-            self.__registered_exchanges.append(exchange_name)
+        
+        # QUERY register to that exchange
+        # TESTED
+        if self.__access_info is None:
+            self._first_access()
+        #Codice Fiscale invece di ID
+        self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{exchange_name}')")
+        self._create_fiat_account(exchange_name)
+        self.__registered_exchanges.append(exchange_name)
+        
+
 
     def _set_exchange(self, name : str):
         self.__exchange_name = name
@@ -351,7 +356,7 @@ class User:
         while True:
             excs = self._current_exchanges()
             possibles = set(excs)
-            possibles.update({"", "update"})
+            possibles.update({"update"})
 
             ch = self.__view.menu("Choose avaiable exchanges", possibles)
             
@@ -362,10 +367,9 @@ class User:
                 continue
 
             self._set_exchange(ch)
-            ex = ch
             ch = self.__view.menu(f"Do you want to register or access to {self.__exchange_name} ?", ["register", "access"])
             
-            if self.access_exchange[ch](ex):
+            if self.access_exchange[ch](self.__exchange_name):
                 while ch != "exit":
                     ch = self.__view.menu(f"What do you want to do on {self.__exchange_name} ?", self.exchange_commands.keys())
                     self.exchange_commands[ch]()
