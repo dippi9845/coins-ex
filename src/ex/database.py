@@ -4,6 +4,7 @@ from functools import partial
 from ex.config import DatabaseConfig
 
 class Database:
+    
     def __init__(self, cofig : dict=DatabaseConfig) -> None:
         
         self.__cnx = mysql.connector.connect(
@@ -19,6 +20,7 @@ class Database:
         self.insert_many = partial(self.execute_many, commit=True)
         self.close = self.__cnx.close
     
+    
     def execute(self, sql : str, commit : bool=False) -> Any:
         rtr = self.__cursor.execute(sql)
         
@@ -26,6 +28,7 @@ class Database:
             self.__cnx.commit()
         
         return rtr
+    
     
     def execute_many(self, sql : str, val, commit : bool=False) -> Any:
         rtr = self.__cursor.executemany(sql, val)
@@ -35,25 +38,19 @@ class Database:
         
         return rtr
     
+    
     def select(self, sql : str) -> Any:
         self.execute(sql)
         return self.__cursor.fetchall()
     
+    
     def insered_id(self) -> Any:
         return self.__cursor.lastrowid
     
-    '''
-    from datetime import date, timedelta
-
-    def dategenerator(start, end):
-        current = start
-        while current <= end:
-            yield current
-            current += timedelta(days=1)
-    '''
 
     def get_countervalue_by_date(self, ticker_fiat : str, ticker_crypto : str, date : str):
         return self.get_countervalue_by_time(ticker_fiat, ticker_crypto, date, "00:00:00", "23:59:59")
+    
     
     def get_countervalue_by_time(self, ticker_fiat : str, ticker_crypto : str, date : str, time_start : str, time_end : str):
         rtr = self.select(f'''
