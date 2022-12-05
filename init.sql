@@ -12,6 +12,7 @@ GRANT ALL PRIVILEGES ON exchanges . * TO 'db-project'@'localhost';
 
 CREATE DATABASE  IF NOT EXISTS `exchanges` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `exchanges`;
+
 -- MySQL dump 10.13  Distrib 8.0.30, for Win64 (x86_64)
 --
 -- Host: localhost    Database: exchanges
@@ -43,12 +44,11 @@ CREATE TABLE `atm` (
   `Provincia` varchar(255) NOT NULL,
   `Modello` varchar(255) NOT NULL,
   `Versione Software` varchar(255) NOT NULL,
-  `Spread attuale` int NOT NULL,
   `Presso` varchar(255) NOT NULL,
+  `Commissione` int unsigned NOT NULL,
   PRIMARY KEY (`Codice Icentificativo`),
   KEY `exchange_idx` (`Presso`),
-  CONSTRAINT `exchange` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`),
-  CONSTRAINT `atm_chk_1` CHECK ((`Spread attuale` > 0))
+  CONSTRAINT `exchange` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -81,6 +81,8 @@ CREATE TABLE `contocorrente` (
   `Nome` varchar(255) NOT NULL,
   `Ticker` varchar(255) NOT NULL,
   PRIMARY KEY (`Indirizzo`),
+  KEY `fiat_idx` (`Ticker`),
+  CONSTRAINT `fiat` FOREIGN KEY (`Ticker`) REFERENCES `fiat` (`Ticker`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `contocorrente_chk_1` CHECK ((`Saldo` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -119,8 +121,8 @@ CREATE TABLE `dipendente` (
   PRIMARY KEY (`Matricola`),
   KEY `supervisione_idx` (`Supervisore`),
   KEY `azienda_idx` (`Presso`),
-  CONSTRAINT `azienda` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`),
-  CONSTRAINT `supervisione` FOREIGN KEY (`Supervisore`) REFERENCES `dipendente` (`Matricola`),
+  CONSTRAINT `azienda` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`) ON UPDATE CASCADE,
+  CONSTRAINT `supervisione` FOREIGN KEY (`Supervisore`) REFERENCES `dipendente` (`Matricola`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `dipendente_chk_1` CHECK ((`Salario` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -168,7 +170,6 @@ DROP TABLE IF EXISTS `ordine`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ordine` (
   `OrdineID` int NOT NULL AUTO_INCREMENT,
-  `UserID` int NOT NULL,
   `Ticker compro` varchar(255) NOT NULL,
   `Ticker vendo` varchar(255) NOT NULL,
   `Quantita compro` int NOT NULL,
@@ -192,11 +193,13 @@ DROP TABLE IF EXISTS `registrati`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `registrati` (
   `ID` int NOT NULL,
-  `Nome` varchar(255) NOT NULL,
+  `Exchange` varchar(255) NOT NULL,
   `Email` varchar(255) NOT NULL,
   `Password` varchar(255) NOT NULL,
   PRIMARY KEY (`ID`),
-  CONSTRAINT `Utenti` FOREIGN KEY (`ID`) REFERENCES `utente` (`ID`)
+  KEY `exchange_fk_idx` (`Exchange`),
+  CONSTRAINT `exchange_fk` FOREIGN KEY (`Exchange`) REFERENCES `exchange` (`Nome`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `Utenti` FOREIGN KEY (`ID`) REFERENCES `utente` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -208,8 +211,8 @@ DROP TABLE IF EXISTS `scambio`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `scambio` (
-  `Transazione crypto` int NOT NULL,
-  `Transazione fiat` int NOT NULL
+  `Transazione crypto` int unsigned NOT NULL,
+  `Transazione fiat` int unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -221,7 +224,7 @@ DROP TABLE IF EXISTS `transazione`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `transazione` (
-  `ID` int NOT NULL AUTO_INCREMENT,
+  `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `Indirizzo Entrata` varchar(255) NOT NULL,
   `Indirizzo Uscita` varchar(255) NOT NULL,
   `Ticker` varchar(255) NOT NULL,
@@ -241,15 +244,19 @@ DROP TABLE IF EXISTS `transazione_fisica`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `transazione_fisica` (
-  `Cambio attuale` int NOT NULL,
-  `Quantita` int NOT NULL,
-  `Spread` int NOT NULL,
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `Quantita` int unsigned NOT NULL,
   `Data` date NOT NULL DEFAULT (curdate()),
   `Ora` time NOT NULL DEFAULT (curtime()),
-  PRIMARY KEY (`Data`,`Ora`),
-  CONSTRAINT `transazione_fisica_chk_1` CHECK ((`Cambio attuale` > 0)),
-  CONSTRAINT `transazione_fisica_chk_2` CHECK ((`Quantita` > 0)),
-  CONSTRAINT `transazione_fisica_chk_3` CHECK ((`Spread` > 0))
+  `Tipo` enum('Prelievo','Deposito') NOT NULL,
+  `Conto` varchar(255) NOT NULL,
+  `ATM` int unsigned NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `conto_corrente_fk_idx` (`Conto`),
+  KEY `ATM_fk_idx` (`ATM`),
+  CONSTRAINT `ATM_fk` FOREIGN KEY (`ATM`) REFERENCES `atm` (`Codice Icentificativo`),
+  CONSTRAINT `conto_corrente_fk` FOREIGN KEY (`Conto`) REFERENCES `contocorrente` (`Indirizzo`),
+  CONSTRAINT `transazione_fisica_chk_2` CHECK ((`Quantita` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -275,38 +282,20 @@ CREATE TABLE `utente` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `wallet_atm`
+-- Table structure for table `wallet`
 --
 
-DROP TABLE IF EXISTS `wallet_atm`;
+DROP TABLE IF EXISTS `wallet`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `wallet_atm` (
-  `ATM_ID` int NOT NULL,
-  `Indirizzo` varchar(255) NOT NULL,
-  `Saldo` int NOT NULL,
-  `Nome` varchar(255) NOT NULL,
-  `Ticker` varchar(255) NOT NULL,
-  PRIMARY KEY (`Indirizzo`),
-  CONSTRAINT `wallet_atm_chk_1` CHECK ((`Saldo` >= 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `wallet_utente`
---
-
-DROP TABLE IF EXISTS `wallet_utente`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `wallet_utente` (
+CREATE TABLE `wallet` (
   `UserID` int NOT NULL,
   `Indirizzo` varchar(255) NOT NULL,
   `Saldo` int NOT NULL,
   `Nome` varchar(255) NOT NULL,
   `Ticker` varchar(255) NOT NULL,
   PRIMARY KEY (`Indirizzo`),
-  CONSTRAINT `wallet_utente_chk_1` CHECK ((`Saldo` >= 0))
+  CONSTRAINT `wallet_chk_1` CHECK ((`Saldo` >= 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -319,7 +308,7 @@ CREATE TABLE `wallet_utente` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-11-27 16:56:08
+-- Dump completed on 2022-12-05 22:37:58
 
 
 INSERT INTO fiat (Nome, Ticker)
