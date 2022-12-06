@@ -51,7 +51,7 @@ class User:
         transaction_id = self.__database.insered_id()
         
         if wallet == True:
-            table = "wallet_utente"
+            table = "wallet"
         
         elif wallet == False:
             table = "contocorrente"
@@ -73,11 +73,9 @@ class User:
 
     def _first_access(self):
 
-        data = ['name', 'surname', 'fiscal_code', 'national' 'telephone', 'residence', 'birth_day']
+        data = ['name', 'surname', 'fiscal_code', 'national', 'telephone', 'residence', 'birth_day']
         
-        user_data = self.__view.ask_for_multiples(data)
-        
-        to_register = self.__view.menu("Choose the first exchange", self._current_exchanges())
+        user_data = self.__view.ask_for_multiples("Insert personal data", data)
 
         # QUERY insert utente instance
         # TESTED
@@ -88,8 +86,6 @@ class User:
         ''')
 
         self.__access_info = self.__database.insered_id()
-
-        self._register(to_register)
         
     def _register(self, exchange_name : str):
         '''
@@ -100,13 +96,15 @@ class User:
         # TESTED
         if self.__access_info is None:
             self._first_access()
+        
+        user_data = self.__view.ask_for_multiples("Insert credentials", ['email', 'password'])
+        
         #Codice Fiscale invece di ID
-        self.__database.insert_into(f"INSERT INTO registrati (ID, Nome) VALUES ({self.__access_info}, '{exchange_name}')")
+        self.__database.insert_into(f"INSERT INTO registrati (ID, Email, Password, Exchange) VALUES ({self.__access_info}, '{user_data['email']}', '{user_data['password']}', '{exchange_name}')")
         self._create_fiat_account(exchange_name)
         self.__registered_exchanges.append(exchange_name)
+        return True
         
-
-
     def _set_exchange(self, name : str):
         self.__exchange_name = name
 
@@ -170,7 +168,7 @@ class User:
         '''
         # QUERY gets all wallets
         # TESTED
-        wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet_utente WHERE UserID={self.__access_info}")
+        wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={self.__access_info}")
         self.__view.show_message("Wallets:")
 
         for wallet in wallets:
@@ -243,8 +241,8 @@ class User:
             
             # QUERY for inser an order
             self.__database.insert_into(f'''
-                INSERT INTO Ordine (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
-                VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
+                INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
+                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
 
     def _buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
@@ -306,8 +304,8 @@ class User:
             
             # QUERY for inser an order
             self.__database.insert_into(f'''
-                INSERT INTO Ordine (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
-                VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
+                INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
+                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
 
     def _withdraw(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
@@ -322,10 +320,7 @@ class User:
         self.__database.update(f"UPDATE contocorrente SET Saldo = Saldo - {to_decrease} WHERE Indirizzo='{user_addr}'")
 
         self.__database.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
-        self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Prelievo')")
-        
-        
-        
+        self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Prelievo')")    
 
     def _deposit(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
@@ -448,19 +443,21 @@ class FakeUser:
         
         self.__database.insert_into(f'''
         INSERT INTO utente
-        (Nome, Cognome, Email, Password, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{name}', '{surname}', '{email}', '{password}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
+        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
         
         self.my_id = self.__database.insered_id()
         
         # nome dell'exchange ceh dovrà essere fornito
         
+        self.__database.insert_into(f"INSERT INTO registrati (ID, Email, Password, Exchange) VALUES ({self.my_id}, '{email}', '{password}', '{exchange_name}')")
+        
         self.fiat_address = sha256(str(self.my_id).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)).hexdigest()
         self.crypto_address = sha256(str(self.my_id).encode() + b"IfdsgD" + str(int(time())).encode() + b"RNfdsgsdD" + randbytes(10)).hexdigest()
         
         self.__database.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({self.my_id}, "{self.crypto_address}", {self.inital_crypto}, "{self.exchange_name}", "{crypto_ticker}")
         ''')
         
@@ -492,8 +489,8 @@ class FakeUser:
             # QUERY
             self.__database.insert_into(f'''
             INSERT INTO Ordine
-            (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
-            VALUES ({self.my_id}, '{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
+            (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+            VALUES ('{self.crypto_ticker}', '{self.fiat_ticker}', {amount_buy}, {amount_sell}, '{self.crypto_address}', '{self.fiat_address}')                 
             ''')
         
             self.order_id = self.__database.insered_id()
@@ -514,8 +511,8 @@ class FakeUser:
             
             trans_cry = self.__database.insered_id()
             
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
+            self.__database.update(f"UPDATE wallet SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
+            self.__database.update(f"UPDATE wallet SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
             
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
@@ -554,8 +551,8 @@ class FakeUser:
             
             self.__database.insert_into(f'''
             INSERT INTO Ordine
-            (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
-            VALUES ({self.my_id}, '{self.fiat_ticker}', '{self.crypto_ticker}', {amount_buy}, {amount_sell}, '{self.fiat_address}', '{self.crypto_address}')                 
+            (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+            VALUES ('{self.fiat_ticker}', '{self.crypto_ticker}', {amount_buy}, {amount_sell}, '{self.fiat_address}', '{self.crypto_address}')                 
             ''')
         
             self.order_id = self.__database.insered_id()
@@ -576,8 +573,8 @@ class FakeUser:
             
             trans_cry = self.__database.insered_id()
             
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
-            self.__database.update(f"UPDATE Wallet_Utente SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
+            self.__database.update(f"UPDATE wallet SET Saldo = Saldo - {real_amount_buy_c} WHERE Indirizzo='{self.crypto_address}'")
+            self.__database.update(f"UPDATE wallet SET Saldo = Saldo + {real_amount_buy_c} WHERE Indirizzo='{ordine[2]}'")
             
             self.__database.insert_into(f'''
                 INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
@@ -677,12 +674,12 @@ if __name__ == "__main__":
     fake_user_num = int(next(arg_it, 2))
     end = int(fake_user_num/2)
     
-    market = Market("Binance", mediators_num=end)
-    market.start()
+    #market = Market("Binance", mediators_num=end)
+    #market.start()
     
-    signal.signal(signal.SIGINT, market.stop_mediators)
+    #signal.signal(signal.SIGINT, market.stop_mediators)
     
     user = User(TerminalView())
     user.run()
     user.exit()
-    market.stop_mediators(None, None)
+    #market.stop_mediators(None, None)
