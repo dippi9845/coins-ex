@@ -5,6 +5,8 @@ from random import choices, randint, sample, seed as set_seed, randbytes
 from time import time
 from datetime import datetime
 from hashlib import sha256
+import mysql.connector.errors as mysql_errors
+
 
 TestConfig = {
     'host' : DatabaseConfig['host'],
@@ -72,10 +74,10 @@ class DatabseTest(unittest.TestCase):
 
         self.db.insert_into(f"""
         INSERT INTO Ordine
-        (UserID, `Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
-        VALUES ({user_id}, '{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{address_in}', '{address_out}')
+        (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+        VALUES ('{ticker_buy}', '{ticker_sell}', {amount_buy}, {amount_sell}, '{address_in}', '{address_out}')
         """)
-
+        
         return self.db.insered_id()
 
     def __make_transaction(self, address_in : str, address_out : str, ticker : str, amount : int, wallet : bool) -> int:
@@ -88,7 +90,7 @@ class DatabseTest(unittest.TestCase):
         transaction_id = self.db.insered_id()
         
         if wallet == True:
-            table = "wallet_utente"
+            table = "wallet"
             
         
         elif wallet == False:
@@ -129,7 +131,7 @@ class DatabseTest(unittest.TestCase):
         self.db.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
         self.db.delete(f"DELETE FROM ordine WHERE OrdineID={order_id}")
 
-    def __create_atm(self, fiat_ticker="EUR", fiat_amount=1000, crypto_ticker="BTC", crypto_amount=10000, spread=0.1, excahnge_name=None) -> int:
+    def __create_atm(self, fiat_ticker="EUR", fiat_amount=1000, spread=0.1, excahnge_name=None) -> int:
         if excahnge_name is None:
             excahnge_name = self.__random_string()
             sede_operativa = self.__random_string()
@@ -145,7 +147,7 @@ class DatabseTest(unittest.TestCase):
         
         self.db.insert_into(f"""
         INSERT INTO ATM 
-        (Presso, Via, Citta, Provincia, Modello, `Versione Software`, `Spread attuale`)
+        (Presso, Via, Citta, Provincia, Modello, `Versione Software`, Commissione)
         VALUES
         ('{excahnge_name}', '{self.__random_string()}', '{self.__random_string()}', '{self.__random_string()}',
         '{self.__random_string()}', '{self.__random_string()}', {spread * 100})
@@ -158,19 +160,36 @@ class DatabseTest(unittest.TestCase):
         VALUES ('{fiat_ticker}', '{atm_id}', {fiat_amount})
         """)
         
-        self.db.insert_into(f"""
-        INSERT INTO Wallet_ATM (ATM_ID, Indirizzo, Saldo, Nome, Ticker)
-        VALUES ('{atm_id}', '{self.__random_string()}', {crypto_amount}, '{excahnge_name}', '{crypto_ticker}')
-        """)
-        
         return atm_id
+    
+    
+    def __create_exchange(self, name=None, sede_operativa=None, sede_legale=None, sitoweb=None, fondatore=None) -> str:
+        if name is None:
+            name = self.__random_string()
+        
+        if sede_operativa is None:
+            sede_operativa = self.__random_string()
+        
+        if sede_legale is None:
+            sede_legale = self.__random_string()
+        
+        if sitoweb is None:
+            sitoweb = "https://" + self.__random_string() + ".com"
+        
+        if fondatore is None:
+            fondatore = self.__random_string()
 
-
+        self.db.insert_into(f'''
+        INSERT INTO exchange
+        (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
+        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
+        ''')
+        
+        return name
+    
     def test_create_user(self):
         name = self.__random_string()
         surname = self.__random_string()
-        email = self.__random_string()
-        password = self.__random_code()
         fiscal_code = self.__random_code()
         nationality = self.__random_string()
         telephone = self.__random_nums()
@@ -214,8 +233,6 @@ class DatabseTest(unittest.TestCase):
         (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
         VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
         ''')
-        
-        user_id = self.db.insered_id()
 
         data = self.db.select(f'''
         SELECT Nome, `Sede Operativa`, `Sede Legale`,`Sito web`, Fondatore
@@ -232,17 +249,7 @@ class DatabseTest(unittest.TestCase):
 
     def test_register_to_exchange(self):
 
-        name = self.__random_string()
-        sede_operativa = self.__random_string()
-        sede_legale = self.__random_string()
-        sitoweb = "https://" + self.__random_string() + ".com"
-        fondatore = self.__random_string()
-
-        self.db.insert_into(f'''
-        INSERT INTO exchange
-        (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
-        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
-        ''')
+        ex_name = self.__create_exchange()
 
         name = self.__random_string()
         surname = self.__random_string()
@@ -263,27 +270,17 @@ class DatabseTest(unittest.TestCase):
         user_id = self.db.insered_id()
 
         #self.db.delete(f"DELETE FROM exchange WHERE Nome='{name}'")
-        self.db.insert_into(f"INSERT INTO registrati (ID, Email, Password, Nome) VALUES ({user_id}, '{email}', '{password}', '{name}')")
+        self.db.insert_into(f"INSERT INTO registrati (ID, Email, Password, Exchange) VALUES ({user_id}, '{email}', '{password}', '{ex_name}')")
 
-        check_name = self.db.select(f"SELECT Nome FROM registrati WHERE ID = {user_id}")[0][0]
-        self.assertEqual(check_name, name)
+        check_name = self.db.select(f"SELECT Exchange FROM registrati WHERE ID = {user_id}")[0][0]
+        self.assertEqual(check_name, ex_name)
 
     def test_is_crypto_ticker(self):
         cryptos_ticker = self.db.select("SELECT Ticker FROM crypto")[0]
         self.assertIn("BTC", cryptos_ticker)
 
     def test_create_default_contocorrente_and_wallet(self):
-        name = self.__random_string()
-        sede_operativa = self.__random_string()
-        sede_legale = self.__random_string()
-        sitoweb = "https://" + self.__random_string() + ".com"
-        fondatore = self.__random_string()
-
-        self.db.insert_into(f'''
-        INSERT INTO exchange
-        (Nome, `Sede Operativa`, `Sede Legale`, `Sito web`, Fondatore)
-        VALUES("{name}", "{sede_operativa}", "{sede_legale}", "{sitoweb}", "{fondatore}")
-        ''')
+        ex_name = self.__create_exchange()
 
         name = self.__random_string()
         surname = self.__random_string()
@@ -303,7 +300,7 @@ class DatabseTest(unittest.TestCase):
 
         user_id = self.db.insered_id()
 
-        self.db.insert_into(f"INSERT INTO registrati (ID, Email, Password, Nome) VALUES ({user_id}, '{email}', '{password}', '{name}')")
+        self.db.insert_into(f"INSERT INTO registrati (ID, Email, Password, Exchange) VALUES ({user_id}, '{email}', '{password}', '{ex_name}')")
 
         to_hash = str(user_id).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)
         # QUERY create an istance of contocorrente
@@ -314,13 +311,8 @@ class DatabseTest(unittest.TestCase):
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 0, "{name}", "BTC")
-        ''')
-        
-        self.db.insert_into(f'''
-            INSERT INTO wallet_atm (ATM_ID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({self.__random_int()}, "{sha256(self.__random_string().encode()).hexdigest()}", 0, "{name}", "BTC")
         ''')
 
     def test_make_transaction(self):
@@ -393,12 +385,12 @@ class DatabseTest(unittest.TestCase):
 
 
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user_id}, "{addr1}", {balance1}, "{name}", "BTC")
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user_id}, "{addr2}", {balance2}, "{name}", "BTC")
         ''')
 
@@ -412,7 +404,7 @@ class DatabseTest(unittest.TestCase):
             VALUES ({user_id}, "{addr4}", {balance4}, "{name}", "EUR")
         ''')
 
-        wallets = self.db.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet_utente WHERE UserID={user_id}")
+        wallets = self.db.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={user_id}")
         self.assertTrue(wallets[0][0] == addr1 or wallets[0][0] == addr2, "wrong address")
         self.assertTrue(wallets[0][1] == balance1 or wallets[0][1] == balance2, "wrong balance")
         self.assertEqual(wallets[0][2], "BTC", "wrong ticker")
@@ -447,12 +439,12 @@ class DatabseTest(unittest.TestCase):
         
 
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user1}, "{btc_addr1}", {start_amount_btc1}, "{self.__random_string()}", "BTC")
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user2}, "{btc_addr2}", {start_amount_btc2}, "{self.__random_string()}", "BTC")
         ''')
         
@@ -510,8 +502,8 @@ class DatabseTest(unittest.TestCase):
 
         # ricevo btc da lui
         trans_cry =self.__make_transaction(btc_addr1, btc_addr2, "BTC", 1, wallet=True)
-        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr1}'")[0][0]
-        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr2}'")[0][0]
+        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr1}'")[0][0]
+        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr2}'")[0][0]
         
         self.assertEqual(final_btc1, start_amount_btc1 + 1)
         self.assertEqual(final_btc2, start_amount_btc2 - 1)
@@ -538,12 +530,12 @@ class DatabseTest(unittest.TestCase):
         
 
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user1}, "{btc_addr1}", {start_amount_btc1}, "{self.__random_string()}", "BTC")
         ''')
 
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
             VALUES ({user2}, "{btc_addr2}", {start_amount_btc2}, "{self.__random_string()}", "BTC")
         ''')
         
@@ -589,8 +581,8 @@ class DatabseTest(unittest.TestCase):
         self.assertEqual(orders[0][2], eur_addr2)
 
         self.__make_transaction(btc_addr2, btc_addr1, "BTC", orders[0][1], wallet=True)
-        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr1}'")[0][0]
-        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet_utente WHERE Indirizzo='{btc_addr2}'")[0][0]
+        final_btc1 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr1}'")[0][0]
+        final_btc2 = self.db.select(f"SELECT Saldo FROM wallet WHERE Indirizzo='{btc_addr2}'")[0][0]
 
         self.db.execute("DELETE FROM Ordine")
 
@@ -632,18 +624,11 @@ class DatabseTest(unittest.TestCase):
         actual = numerator/sum(map(lambda x: x[1], rtr))
 
         self.assertEqual(expected_medium, actual)
-        self.db.delete("DELETE FROM scambio")
 
     def test_create_atm(self):
         fiat_amount = 1000
-        crypto_amount = 10000
         fiat_ticker = "EUR"
-        crypto_ticker = "BTC"
-        atm_id = self.__create_atm(fiat_amount=fiat_amount, fiat_ticker=fiat_ticker, crypto_amount=crypto_amount, crypto_ticker=crypto_ticker)
-        
-        actual = self.db.select(f"SELECT Saldo FROM Wallet_ATM WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
-        
-        self.assertEqual(actual, crypto_amount)
+        atm_id = self.__create_atm(fiat_amount=fiat_amount, fiat_ticker=fiat_ticker)
         
         actual = self.db.select(f"SELECT Quantita FROM contante WHERE `Codice ATM`='{atm_id}' AND `Ticker fiat`='{fiat_ticker}'")[0][0]
         
@@ -651,61 +636,52 @@ class DatabseTest(unittest.TestCase):
 
     def test_withdraw(self):
         initial_fiat_amount = 1000
-        initial_crypto_amont = 10000
         fiat_ticker = "EUR"
-        crypto_ticker = "BTC"
-        
-        atm_id = self.__create_atm(fiat_ticker=fiat_ticker, crypto_ticker=crypto_ticker, fiat_amount=initial_fiat_amount, crypto_amount=initial_crypto_amont)
-        
         user_addr = self.__ramdom_hash()
         amount_fiat = 500
-        now = datetime.now()
         
-        # riempire di scambi
-        
-        spread = self.db.select(f"SELECT `Spread attuale` FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
-        spread /= 100
-        countervalue = 200
-        excahnge_price = countervalue * (1 + spread)
-        crypto_amount = int(amount_fiat/excahnge_price)
+        name = self.__random_string()
+        surname = self.__random_string()
+        fiscal_code = self.__random_code()
+        nationality = self.__random_string()
+        telephone = self.__random_nums()
+        residence = self.__random_string()
+        bith_day = self.__random_date()
 
-        atm_addr = self.db.select(f"SELECT Indirizzo FROM wallet_atm WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
-        user_addr = self.__ramdom_hash()
+        ex_name = self.__create_exchange()
         
-        # QUERY create a transaction
-        # TESTED
         self.db.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
-            VALUES
-            ('{atm_addr}', '{user_addr}', '{crypto_ticker}', {crypto_amount})
+        INSERT INTO utente
+        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+        VALUES('{name}', '{surname}', '{fiscal_code}', '{nationality}', '{telephone}', '{residence}', '{bith_day}')
         ''')
         
-        trans_id = self.db.insered_id()
+        user_id = self.db.insered_id()
         
-        initial = 10000
         self.db.insert_into(f'''
-            INSERT INTO wallet_utente (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({self.__random_int()}, "{user_addr}", {initial}, "{self.__random_string()}", "BTC")
+            INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
+            VALUES ({user_id}, "{user_addr}", {initial_fiat_amount}, "{ex_name}", "{fiat_ticker}")
         ''')
-        self.db.update(f"UPDATE wallet_utente SET Saldo = Saldo - {crypto_amount} WHERE Indirizzo='{user_addr}'")
-        # QUERY
-        # TESTED
-        self.db.update(f"UPDATE wallet_atm SET Saldo = Saldo + {crypto_amount} WHERE Indirizzo='{atm_addr}'")
+        
+        atm_id = self.__create_atm(fiat_ticker=fiat_ticker, fiat_amount=initial_fiat_amount)
+        
+        commissione = self.db.select(f"SELECT Commissione FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
+        
+        to_decrease = amount_fiat + commissione
+        
+        self.db.update(f"UPDATE contocorrente SET Saldo = Saldo - {to_decrease} WHERE Indirizzo='{user_addr}'")
 
         # decrease the amount of fiat money in the atm
         self.db.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
-        self.db.insert_into(f"INSERT INTO transazione_fisica (`Transazione Virtuale`, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
-        
-        actual = self.db.select(f"SELECT Saldo FROM Wallet_ATM WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
-        self.assertEqual(actual, initial_crypto_amont + crypto_amount)
+        self.db.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Prelievo')")
         
         actual = self.db.select(f"SELECT Quantita FROM contante WHERE `Codice ATM`='{atm_id}' AND `Ticker fiat`='{fiat_ticker}'")[0][0]
         self.assertEqual(actual, initial_fiat_amount - amount_fiat)
         
         # user check
         
-        actual = self.db.select(f"SELECT Saldo FROM Wallet_Utente WHERE Indirizzo='{user_addr}'")[0][0]
-        self.assertEqual(actual, initial - crypto_amount)
+        actual = self.db.select(f"SELECT Saldo FROM Contocorrente WHERE Indirizzo='{user_addr}'")[0][0]
+        self.assertEqual(actual, initial_fiat_amount - to_decrease)
     
     def test_deposit(self):
         initial_fiat_amount = 1000
@@ -798,10 +774,14 @@ if __name__ == "__main__":
         
         for i in query:
         
-            if i == "" or i == "\n":
+            if i.strip() == "" or i.strip() == "\n":
                 continue
             
-            executor.execute(i)
-    
+            try:
+                executor.execute(i)
+            except mysql_errors.ProgrammingError as e:
+                print(f"query [{i}]")
+                continue
+            
     elif cmd == "tests":
         unittest.main()
