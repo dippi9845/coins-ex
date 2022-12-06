@@ -310,78 +310,36 @@ class User:
                 VALUES ({self.__access_info}, "{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
 
-    def _withdraw(self, atm_id : str, crypto_ticker : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
+    def _withdraw(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
         withdraw fiat money 
         '''
-        now = datetime.now()
-        spread = self.__database.select(f"SELECT spread FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
-        spread /= 100
-        countervalue = self.__database.get_countervalue_by_time(fiat_ticker, crypto_ticker, f"{now.year}-{now.month}-{now.day}", "00:00:00", f"{now.hour}:{now.minute}:{now.second}")
-        excahnge_price = countervalue * (1 + spread)
-        crypto_amount = int(amount_fiat/excahnge_price)
+        # TODO: CREATE a transaction
+        commissione = self.__database.select(f"SELECT Commissione FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
+        
+        to_decrease = amount_fiat + commissione
+        
+        self.__database.update(f"UPDATE contocorrente SET Saldo = Saldo - {to_decrease} WHERE Indirizzo='{user_addr}'")
 
-        atm_addr = self.__database.select(f"SELECT Indirizzo FROM wallet_atm WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0]
-        
-        date = datetime.now()
-        
-        # QUERY create a transaction
-        # TESTED
-        self.__database.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita, Data, Ora)
-            VALUES
-            ('{atm_addr}', '{user_addr}', '{user_addr}', {user_addr}, '{date.year}-{date.month}-{date.day}', '{date.hour}:{date.minute}:{date.second}')
-        ''')
-        
-        # QUERY
-        # TESTED
-        self.__database.update(f"UPDATE wallet_utente SET Saldo = Saldo - {crypto_amount} WHERE Indirizzo='{user_addr}'")
-        # QUERY
-        # TESTED
-        self.__database.update(f"UPDATE wallet_atm SET Saldo = Saldo + {crypto_amount} WHERE Indirizzo='{atm_addr}'")
-
-        # decrease the amount of fiat money in the atm
         self.__database.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
-        self.__database.insert_into(f"INSERT INTO transazione_fisica (`Transazione Virtuale`, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
+        self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Prelievo')")
+        
         
         
 
-    def _deposit(self, atm_id : str, crypto_ticker : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
+    def _deposit(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
         deposit fiat money
         '''
-        now = datetime.now()
+        commissione = self.__database.select(f"SELECT Commissione FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
         
-        # riempire di scambi
+        to_increase = amount_fiat - commissione
         
-        spread = self.__database.select(f"SELECT `Spread attuale` FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
-        spread /= 100
-        countervalue = self.__database.get_countervalue_by_time(crypto_ticker, fiat_ticker, f"{now.year}-{now.month}-{now.day}", "00:00:00", f"{now.hour}:{now.minute}:{now.second}")
-        excahnge_price = countervalue * (1 - spread)
-        crypto_amount = int(amount_fiat/excahnge_price)
+        self.__database.update(f"UPDATE contocorrente SET Saldo = Saldo + {to_increase} WHERE Indirizzo='{user_addr}'")
 
-        atm_addr = self.__database.select(f"SELECT Indirizzo FROM wallet_atm WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
-        
-        # QUERY create a transaction
-        # TESTED
-        self.__database.insert_into(f'''
-            INSERT INTO transazione (`Indirizzo Entrata`, `Indirizzo Uscita`, Ticker, Quantita)
-            VALUES
-            ('{user_addr}', '{atm_addr}', '{crypto_ticker}', {crypto_amount})
-        ''')
-        
-        trans_id = self.db.insered_id()
-        
+        # decrease the amount of fiat money in the atm
         self.__database.update(f"UPDATE contante SET Quantita = Quantita + {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
-        self.__database.insert_into(f"INSERT INTO transazione_fisica (`Transazione Virtuale`, `Ticker fiat`, `Cambio attuale`, Quantita, Spread) VALUES ({trans_id}, '{fiat_ticker}', {countervalue}, {amount_fiat}, {spread * 100})")
-        
-        actual = self.__database.select(f"SELECT Saldo FROM Wallet_ATM WHERE ATM_ID='{atm_id}' AND Ticker='{crypto_ticker}'")[0][0]
-        
-        actual = self.__database.select(f"SELECT Quantita FROM contante WHERE `Codice ATM`='{atm_id}' AND `Ticker fiat`='{fiat_ticker}'")[0][0]
-        
-        # user check
-        
-        actual = self.__database.select(f"SELECT Saldo FROM Wallet_Utente WHERE Indirizzo='{user_addr}'")[0][0]
+        self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Deposito')")
 
     def run(self):
         '''
