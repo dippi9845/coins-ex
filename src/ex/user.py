@@ -87,11 +87,11 @@ class User:
 
         self.__access_info = self.__database.insered_id()
         
-    def _register(self, exchange_name : str):
+    def _register(self):
         '''
         register the user to the exchange provided as paramenter
         '''
-        
+        exchange_name = self.__exchange_name
         # QUERY register to that exchange
         # TESTED
         if self.__access_info is None:
@@ -124,20 +124,20 @@ class User:
         '''
         
         data = ['email', 'password']
-        user_data = self.__view.ask_for_multiples(data)
+        user_data = self.__view.ask_for_multiples("Insert credentials", data)
         
         # QUERY get id
         # TESTED
-        resp = self.__database.select(f"SELECT ID FROM utente WHERE Email = '{user_data['email']}' AND Password = '{user_data['password']}'")
+        resp = self.__database.select(f"SELECT ID FROM registrati WHERE Email = '{user_data['email']}' AND Password = '{user_data['password']}'")
         
         if len(resp) == 0:
             return False
 
-        user_id = resp[0]
+        user_id = resp[0][0]
         self.__access_info = user_id
         # QUERY get registerd exchnges
         # TESTED
-        resp = self.__database.select(f"SELCECT Nome FROM registrati WHERE ID = {user_id}")
+        resp = self.__database.select(f"SELECT Exchange FROM registrati WHERE ID = {user_id}")
         self.__registered_exchanges = list(map(lambda x: x[0], resp))
         return True
 
@@ -356,7 +356,7 @@ class User:
             self._set_exchange(ch)
             ch = self.__view.menu(f"Do you want to register or access to {self.__exchange_name} ?", ["register", "access"])
             
-            if self.access_exchange[ch](self.__exchange_name):
+            if self.access_exchange[ch]():
                 while ch != "exit":
                     ch = self.__view.menu(f"What do you want to do on {self.__exchange_name} ?", self.exchange_commands.keys())
                     self.exchange_commands[ch]()
