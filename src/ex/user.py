@@ -1,5 +1,5 @@
 from typing import Any, Callable
-from view import View, TerminalView
+from view import View, TerminalView, HybridView
 from database import Database
 from hashlib import sha256
 from time import time
@@ -255,6 +255,12 @@ class User:
                 INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
                 VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}")
             ''')
+            
+            buyer = FakeUser(FakeUser.BUY_STATE, self.__exchange_name, inital_crypto=amount_buy, initial_fiat=amount_sell, crypto_ticker=ticker_buy, fiat_ticker=ticker_sell)
+            
+            buyer._set_next_amounts(amount_buy, amount_sell)
+            
+            buyer.execute_state()
 
     def _sell(self):
         cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
@@ -328,6 +334,12 @@ class User:
                 VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}")
             ''')
             print(self.__database.insered_id())
+            
+            seller = FakeUser(FakeUser.SELL_STATE, self.__exchange_name, crypto_ticker=ticker_buy, fiat_ticker=ticker_sell)
+            
+            seller._set_next_amounts(amount_buy, amount_sell)
+            
+            seller.execute_state()
 
     def _buy(self):
         cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
@@ -719,7 +731,7 @@ if __name__ == "__main__":
     
     #signal.signal(signal.SIGINT, market.stop_mediators)
     
-    user = User(TerminalView())
+    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "buy", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
     user.run()
     user.exit()
     #market.stop_mediators(None, None)
