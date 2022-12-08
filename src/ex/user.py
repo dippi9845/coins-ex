@@ -30,7 +30,7 @@ class User:
             "sell" : self._sell,
             "buy" : self._buy,
             "report" : self._report,
-            "exit" : self.exit
+            "exit" : self.__exchange_exit
         }
         
         self.__exchange_name = None
@@ -182,7 +182,7 @@ class User:
         for account in accounts:
             self.__view.show_message(f"Address: {account[0]}, balance: {account[1]}, contains: {account[2]}")
     
-    def _sell(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
+    def __sell(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
         want to sell crypto
         '''
@@ -245,6 +245,17 @@ class User:
                 VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
 
+    def _sell(self):
+        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
+        crypto = self.__view.menu("Select the crypto you want to sell", cryptos)
+        
+        fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+        fiat = self.__view.menu("Select the fait you want to get", fiats)
+        
+        data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["crypto address", "fiat address", "Amount sell", "Amount buy"])
+        
+        self.__sell(data["fiat address"], data["crypto address"], crypto, fiat, data["Amount sell"], data["Amount buy"])
+    
     def _buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
         want to buy crypto
@@ -335,7 +346,7 @@ class User:
         # decrease the amount of fiat money in the atm
         self.__database.update(f"UPDATE contante SET Quantita = Quantita + {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
         self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Deposito')")
-
+    
     def run(self):
         '''
         keep intercting with the user
@@ -364,11 +375,19 @@ class User:
                 print(f"error during {ch}")
 
 
-    def exit(self):
+    def __exchange_exit(self):
         '''
         exit from the current exchange
         '''
         self.__access_info = None
+        self.__exchange_name = None
+    
+    
+    def exit(self):
+        '''
+        exit from the app
+        '''
+        self.__exchange_exit()
         self.__database.close()
     
 
