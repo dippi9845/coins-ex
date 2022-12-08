@@ -30,6 +30,8 @@ class User:
             "sell" : self._sell,
             "buy" : self._buy,
             "report" : self._report,
+            "create wallet" : self._create_wallet,
+            "create bank account" : self._create_fiat_account,
             "exit" : self.__exchange_exit
         }
         
@@ -101,7 +103,7 @@ class User:
         
         #Codice Fiscale invece di ID
         self.__database.insert_into(f"INSERT INTO registrati (ID, Email, Password, Exchange) VALUES ({self.__access_info}, '{user_data['email']}', '{user_data['password']}', '{exchange_name}')")
-        self._create_fiat_account(exchange_name)
+        self.__create_fiat_account(exchange_name)
         self.__registered_exchanges.append(exchange_name)
         return True
         
@@ -141,26 +143,36 @@ class User:
         self.__registered_exchanges = list(map(lambda x: x[0], resp))
         return True
 
-    def _create_wallet(self, exchange_name : str, crypto_ticker : str):
-        if self.__access_info is not None:
+    def __create_wallet(self, crypto_ticker : str):
+        if self.__access_info is not None and self.__exchange_name is not None:
             to_hash = str(self.__access_info).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)
             # QUERY create an istance of contocorrente
             
             self.__database.insert_into(f'''
                 INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
-                VALUES ({self.__access_info}, "{sha256(to_hash).hexdigest()}", 0, "{exchange_name}", "{crypto_ticker}")
+                VALUES ({self.__access_info}, "{sha256(to_hash).hexdigest()}", 0, "{self.__exchange_name}", "{crypto_ticker}")
             ''')
 
-    def _create_fiat_account(self, exchange_name : str, fiat_ticker : str="EUR", amount : int=1000):
-        if self.__access_info is not None:
+    def _create_wallet(self):
+        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
+        crypto_ticker = self.__view.menu("Select the crypto you want to create wallet", cryptos)
+        self.__create_wallet(crypto_ticker)
+
+    def __create_fiat_account(self, fiat_ticker : str="EUR", amount : int=1000):
+        if self.__access_info is not None and self.__exchange_name is not None:
             to_hash = str(self.__access_info).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)
             
             # QUERY create an istance of contocorrente
             # TESTED
             self.__database.insert_into(f'''
                 INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
-                VALUES ({self.__access_info}, "{sha256(to_hash).hexdigest()}", {amount}, "{exchange_name}", "{fiat_ticker}")
+                VALUES ({self.__access_info}, "{sha256(to_hash).hexdigest()}", {amount}, "{self.__exchange_name}", "{fiat_ticker}")
             ''')
+    
+    def _create_fiat_account(self):
+        fiat = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+        fiat_ticker = self.__view.menu("Select the fiat you want to create account", fiat)
+        self.__create_fiat_account(fiat_ticker=fiat_ticker)
     
     def _report(self):
         '''
@@ -172,7 +184,7 @@ class User:
         self.__view.show_message("Wallets:")
 
         for wallet in wallets:
-            self.__view.show_message(f"Address: {wallet[0]}, contains: {wallet[1]}, balance: {wallet[2]}")
+            self.__view.show_message(f"Address: {wallet[0]}, balance: {wallet[1]}, contains: {wallet[2]}")
 
         # QUERY gets all fiat accounts
         # TESTED
@@ -237,12 +249,11 @@ class User:
 
         else:
             # place an order and wait to be compleated
-            date = datetime.now()
             
             # QUERY for inser an order
             self.__database.insert_into(f'''
-                INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
-                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
+                INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}")
             ''')
 
     def _sell(self):
@@ -254,16 +265,16 @@ class User:
         
         data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["crypto address", "fiat address", "Amount sell", "Amount buy"])
         
-        self.__sell(data["fiat address"], data["crypto address"], crypto, fiat, data["Amount sell"], data["Amount buy"])
+        self.__sell(data["fiat address"], data["crypto address"], crypto, fiat, float(data["Amount sell"]), float(data["Amount buy"]))
     
-    def __buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
+    def __buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int | float, amount_buy : int | float, tollerance : float=0.1):
         '''
         want to buy crypto
         '''
         # QUERY get all order of sell for this crypto and the amount in the other currency
         sells = self.__database.select(f'''
         SELECT OrdineID, `Quantita compro` FROM Ordine
-        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy} AND
+        WHERE `Ticker compro`="{ticker_sell}" AND `Ticker vendo`="{ticker_buy}" AND
         `Quantita compro` BETWEEN {amount_buy * (1-tollerance)} AND {amount_buy * (1+tollerance)}
         ''')
 
@@ -310,25 +321,24 @@ class User:
 
 
         else:
-            # place an order and wait to be compleated
-            date = datetime.now()
             
             # QUERY for inser an order
             self.__database.insert_into(f'''
-                INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
-                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
+                INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
+                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}")
             ''')
+            print(self.__database.insered_id())
 
     def _buy(self):
         cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
-        crypto = self.__view.menu("Select the crypto you want to sell", cryptos)
+        crypto = self.__view.menu("Select the crypto you want to buy", cryptos)
         
         fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
-        fiat = self.__view.menu("Select the fait you want to get", fiats)
+        fiat = self.__view.menu("Select the fiat that you want to give", fiats)
         
         data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["crypto address", "fiat address", "Amount buy", "Amount sell"])
         
-        self.__buy(data["crypto address"], data["fiat address"], fiat, crypto, data["Amount sell"], data["Amount buy"])
+        self.__buy(data["crypto address"], data["fiat address"], fiat, crypto, float(data["Amount sell"]), float(data["Amount buy"]))
 
     def _withdraw(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
@@ -365,7 +375,7 @@ class User:
         while True:
             excs = self._current_exchanges()
             possibles = set(excs)
-            possibles.update({"update"})
+            possibles.update({"update", ""})
 
             ch = self.__view.menu("Choose avaiable exchanges", possibles)
             
