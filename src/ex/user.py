@@ -256,7 +256,7 @@ class User:
         
         self.__sell(data["fiat address"], data["crypto address"], crypto, fiat, data["Amount sell"], data["Amount buy"])
     
-    def _buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
+    def __buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
         want to buy crypto
         '''
@@ -318,6 +318,17 @@ class User:
                 INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`, Data, Ora)
                 VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}", "{date.year}-{date.month}-{date.day}", "{date.hour}:{date.minute}:{date}")
             ''')
+
+    def _buy(self):
+        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
+        crypto = self.__view.menu("Select the crypto you want to sell", cryptos)
+        
+        fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+        fiat = self.__view.menu("Select the fait you want to get", fiats)
+        
+        data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["crypto address", "fiat address", "Amount buy", "Amount sell"])
+        
+        self.__buy(data["crypto address"], data["fiat address"], fiat, crypto, data["Amount sell"], data["Amount buy"])
 
     def _withdraw(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
