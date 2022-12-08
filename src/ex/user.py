@@ -180,7 +180,7 @@ class User:
         self.__view.show_message("Accounts:")
         
         for account in accounts:
-            self.__view.show_message(f"Address: {account[0]}, contains: {account[1]}, balance: {account[2]}")
+            self.__view.show_message(f"Address: {account[0]}, balance: {account[1]}, contains: {account[2]}")
     
     def _sell(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
