@@ -90,3 +90,46 @@ class QueueView(View):
             rtr[i] = self.queue.pop(0)
         
         return rtr
+
+
+class HybridView(View):
+    
+    def __init__(self, values : str | list[str]=[], sep : str=" ") -> None:
+        super().__init__()
+        self.queue = values.split(sep) if isinstance(values, str) else values
+    
+    
+    def __get_value(self, msg : str) -> str:
+        if len(self.queue) > 0:
+            return self.queue.pop(0)
+        
+        else:
+            return input(msg)
+    
+    
+    def ask_input(self, msg : str) -> str:
+        return self.__get_value(msg)
+
+    
+    def show_message(self, msg : str) -> Any:
+        print(msg)
+
+
+    def menu(self, msg : str, choises : list[str]) -> str:
+        self.show_message(msg)
+        #self.show_message(list_char)
+        self.show_message(f"\n-" + f"\n-".join(choises))
+        return self.__get_value("\n-> ")
+
+
+    def chagne_view(self, name_view : str) -> Any:
+        pass
+    
+
+    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+        rtr = {}
+        
+        for i in values:
+            rtr[i] = self.__get_value(msg)
+        
+        return rtr
