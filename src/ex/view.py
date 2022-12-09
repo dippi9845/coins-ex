@@ -131,6 +131,6 @@ class HybridView(View):
         rtr = {}
         
         for i in values:
-            rtr[i] = self.__get_value(msg)
+            rtr[i] = self.__get_value(f"{i}: ")
         
         return rtr
