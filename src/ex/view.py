@@ -127,6 +127,7 @@ class HybridView(View):
     
 
     def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+        self.show_message(msg)
         rtr = {}
         
         for i in values:
