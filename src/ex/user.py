@@ -352,7 +352,19 @@ class User:
         
         self.__buy(data["crypto address"], data["fiat address"], fiat, crypto, float(data["Amount sell"]), float(data["Amount buy"]))
 
-    def _withdraw(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
+    def __show_atm(self):
+        
+        try:
+            atms_data = self.__database.select(f"SELECT * FROM atm WHERE Presso='{self.__exchange_name}'")[0]
+        except IndexError:
+            self.__view.show_message("No atm in this exchange")
+            return False
+        else:
+            for atm_data in atms_data:
+                self.__view.show_message(atm_data)
+            return True
+    
+    def __withdraw(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
         withdraw fiat money 
         '''
@@ -366,7 +378,21 @@ class User:
         self.__database.update(f"UPDATE contante SET Quantita = Quantita - {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
         self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Prelievo')")    
 
-    def _deposit(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
+    def _withdraw(self):
+        if self.__show_atm():
+            ids = self.__database.select(f"SELECT `Codice Icentificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
+            ids = list(map(lambda x: str(x), ids))
+            ch_id = self.__view.menu("Select the atm", ids)
+            
+            fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+            fiat = self.__view.menu("Select the fiat that you want to withdraw", fiats)
+            
+            data = self.__view.ask_for_multiples("Insert data to compleate the withdraw process", ["user address", "Amount"])
+            
+            self.__withdraw(ch_id, fiat, float(data["Amount"]), data["user address"])
+        
+    
+    def __deposit(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
         deposit fiat money
         '''
@@ -379,6 +405,19 @@ class User:
         # decrease the amount of fiat money in the atm
         self.__database.update(f"UPDATE contante SET Quantita = Quantita + {amount_fiat} WHERE `Codice ATM`='{atm_id}'")
         self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Deposito')")
+    
+    def _deposit(self):
+        if self.__show_atm():
+            ids = self.__database.select(f"SELECT `Codice Icentificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
+            ids = list(map(lambda x: str(x), ids))
+            ch_id = self.__view.menu("Select the atm", ids)
+            
+            fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+            fiat = self.__view.menu("Select the fiat that you want to withdraw", fiats)
+            
+            data = self.__view.ask_for_multiples("Insert data to compleate the withdraw process", ["user address", "Amount"])
+            
+            self.__deposit(ch_id, fiat, float(data["Amount"]), data["user address"])
     
     def run(self):
         '''
@@ -731,7 +770,8 @@ if __name__ == "__main__":
     
     #signal.signal(signal.SIGINT, market.stop_mediators)
     
-    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
+    #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
+    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "deposit", "1", "EUR", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "500"]))
     user.run()
     user.exit()
     #market.stop_mediators(None, None)
