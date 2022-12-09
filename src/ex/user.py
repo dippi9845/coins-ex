@@ -256,7 +256,7 @@ class User:
                 VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}")
             ''')
             
-            buyer = FakeUser(FakeUser.BUY_STATE, self.__exchange_name, inital_crypto=amount_buy, initial_fiat=amount_sell, crypto_ticker=ticker_buy, fiat_ticker=ticker_sell)
+            buyer = FakeUser(FakeUser.BUY_STATE, self.__exchange_name, crypto_ticker=ticker_sell, fiat_ticker=ticker_buy)
             
             buyer._set_next_amounts(amount_buy, amount_sell)
             
@@ -331,7 +331,7 @@ class User:
             # QUERY for inser an order
             self.__database.insert_into(f'''
                 INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
-                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_buy}", "{address_sell}")
+                VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_sell}", "{address_buy}")
             ''')
             print(self.__database.insered_id())
             
@@ -591,7 +591,7 @@ class FakeUser:
         
         # QUERY
         orders = self.__database.select(f'''
-        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID FROM Ordine
+        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, `Quantita vendo`, OrdineID FROM Ordine
         WHERE `Ticker compro`="{self.crypto_ticker}" AND `Ticker vendo`="{self.fiat_ticker}" AND
         `Quantita vendo` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
         ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
@@ -641,7 +641,7 @@ class FakeUser:
             
             self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
-            self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
+            self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[4]}")
         
         self.state = self.BUY_STATE
     
@@ -731,7 +731,7 @@ if __name__ == "__main__":
     
     #signal.signal(signal.SIGINT, market.stop_mediators)
     
-    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "buy", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
+    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
     user.run()
     user.exit()
     #market.stop_mediators(None, None)
