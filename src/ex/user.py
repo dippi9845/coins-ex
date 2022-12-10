@@ -569,10 +569,10 @@ class FakeUser:
         
         # QUERY
         orders = self.__database.select(f'''
-        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID, `Quantita vendo` FROM Ordine
+        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, OrdineID, `Quantita vendo` FROM exchanges.Ordine
         WHERE `Ticker compro`="{self.fiat_ticker}" AND `Ticker vendo`="{self.crypto_ticker}" AND
-        `Quantita compro` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
-        ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
+        `Quantita vendo` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
+        ORDER BY ABS(`Quantita vendo` - {amount_buy}) ASC
         ''')
         
         if len(orders) == 0:
@@ -616,7 +616,7 @@ class FakeUser:
             self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
             self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
             
-            self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
+            self.__database.insert_into(f"INSERT INTO exchanges.scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[3]}")
         
@@ -630,10 +630,10 @@ class FakeUser:
         
         # QUERY
         orders = self.__database.select(f'''
-        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, `Quantita vendo`, OrdineID FROM Ordine
+        SELECT `Indirizzo compro`, `Quantita compro`, `Indirizzo vendo`, `Quantita vendo`, OrdineID FROM exchanges.Ordine
         WHERE `Ticker compro`="{self.crypto_ticker}" AND `Ticker vendo`="{self.fiat_ticker}" AND
         `Quantita vendo` BETWEEN {int(amount_buy * (1-0.1))} AND {int(amount_buy * (1+0.1))}
-        ORDER BY ABS(`Quantita compro` - {amount_buy}) ASC
+        ORDER BY ABS(`Quantita vendo` - {amount_buy}) ASC
         ''')
         
         if len(orders) == 0:
@@ -678,7 +678,7 @@ class FakeUser:
             self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo - {real_amount_buy_f} WHERE Indirizzo='{ordine[0]}'")
             self.__database.update(f"UPDATE Contocorrente SET Saldo = Saldo + {real_amount_buy_f} WHERE Indirizzo='{self.fiat_address}'")
             
-            self.__database.insert_into(f"INSERT INTO scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
+            self.__database.insert_into(f"INSERT INTO exchanges.scambio (`Transazione crypto`, `Transazione fiat`) VALUES ({trans_cry}, {trans_eur})")
             
             self.__database.delete(f"DELETE FROM Ordine WHERE OrdineID={ordine[4]}")
         
@@ -719,7 +719,7 @@ class Mediator(Thread):
     
     def run(self):
         while self.is_running:
-            c_amount = randint(1, 100)
+            c_amount = randint(1, 50)
             f_amount = self.noise(self.fluttuation(int(time()) - self.start_time)) * c_amount
             
             self.buyer._set_next_amounts(c_amount, f_amount)
@@ -765,13 +765,22 @@ if __name__ == "__main__":
     fake_user_num = int(next(arg_it, 2))
     end = int(fake_user_num/2)
     
-    #market = Market("Binance", mediators_num=end)
-    #market.start()
+    market = Market("Binance", mediators_num=end)
+    market.start()
     
-    #signal.signal(signal.SIGINT, market.stop_mediators)
+    signal.signal(signal.SIGINT, market.stop_mediators)
+    
+    db = Database()
+    now = datetime.now()
+    
+    for _ in range(100):
+        print(db.get_countervalue_by_date("EUR", "BTC", f"{now.year}-{now.month}-{now.day}"))
+        
+        sleep(1)
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
-    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "deposit", "1", "EUR", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "500"]))
-    user.run()
-    user.exit()
-    #market.stop_mediators(None, None)
+    #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "deposit", "1", "EUR", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "500"]))
+    #user.run()
+    #user.exit()
+    
+    market.stop_mediators(None, None)
