@@ -760,27 +760,11 @@ class Market:
 
 
 if __name__ == "__main__":
-    arg_it = iter(argv)
-    next(arg_it)
-    fake_user_num = int(next(arg_it, 2))
-    end = int(fake_user_num/2)
-    
-    market = Market("Binance", mediators_num=end)
-    market.start()
-    
-    signal.signal(signal.SIGINT, market.stop_mediators)
-    
-    db = Database()
-    now = datetime.now()
-    
-    for _ in range(100):
-        print(db.get_countervalue_by_date("EUR", "BTC", f"{now.year}-{now.month}-{now.day}"))
-        
-        sleep(1)
+
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "deposit", "1", "EUR", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "500"]))
-    #user.run()
-    #user.exit()
+    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123"]))
+    user.run()
+    user.exit()
     
-    market.stop_mediators(None, None)
