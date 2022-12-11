@@ -78,16 +78,21 @@ class User:
         data = ['name', 'surname', 'fiscal_code', 'national', 'telephone', 'residence', 'birth_day']
         
         user_data = self.__view.ask_for_multiples("Insert personal data", data)
+        already_id = self.__database.select(f"SELECT ID FROM utente WHERE `Codice Fiscale` = '{user_data['fiscal_code']}'")
+        
+        if len(already_id) == 1:
+            self.__access_info = already_id[0][0]
+        
+        else:
+            # QUERY insert utente instance
+            # TESTED
+            self.__database.insert_into(f'''
+            INSERT INTO utente
+            (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
+            VALUES('{user_data['name']}', '{user_data['surname']}', '{user_data['fiscal_code']}', '{user_data['national']}', '{user_data['telephone']}', '{user_data['residence']}', '{user_data['birth_day']}')
+            ''')
 
-        # QUERY insert utente instance
-        # TESTED
-        self.__database.insert_into(f'''
-        INSERT INTO utente
-        (Nome, Cognome, `Codice Fiscale`, Nazionalita, `Numero Di Telefono`, Residenza, `Data di nascita`)
-        VALUES('{user_data['name']}', '{user_data['surname']}', '{user_data['fiscal_code']}', '{user_data['national']}', '{user_data['telephone']}', '{user_data['residence']}', '{user_data['birth_day']}')
-        ''')
-
-        self.__access_info = self.__database.insered_id()
+            self.__access_info = self.__database.insered_id()
         
     def _register(self):
         '''
@@ -103,7 +108,9 @@ class User:
         
         #Codice Fiscale invece di ID
         self.__database.insert_into(f"INSERT INTO registrati (ID, Email, Password, Exchange) VALUES ({self.__access_info}, '{user_data['email']}', '{user_data['password']}', '{exchange_name}')")
-        self.__create_fiat_account(exchange_name)
+        fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+        fiat = self.__view.menu("Select the fiat you want to first deposit", fiats)
+        self.__create_fiat_account(fiat)
         self.__registered_exchanges.append(exchange_name)
         return True
         
@@ -130,7 +137,7 @@ class User:
         
         # QUERY get id
         # TESTED
-        resp = self.__database.select(f"SELECT ID FROM registrati WHERE Email = '{user_data['email']}' AND Password = '{user_data['password']}'")
+        resp = self.__database.select(f"SELECT ID FROM registrati WHERE Email = '{user_data['email']}' AND Password = '{user_data['password']}' AND Exchange = '{self.__exchange_name}'")
         
         if len(resp) == 0:
             return False
@@ -154,7 +161,8 @@ class User:
             ''')
 
     def _create_wallet(self):
-        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
+        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")
+        cryptos = list(map(lambda x: x[0], cryptos))
         crypto_ticker = self.__view.menu("Select the crypto you want to create wallet", cryptos)
         self.__create_wallet(crypto_ticker)
 
@@ -170,7 +178,8 @@ class User:
             ''')
     
     def _create_fiat_account(self):
-        fiat = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+        fiat = self.__database.select(f"SELECT Ticker FROM fiat")
+        fiat = list(map(lambda x: x[0], fiat))
         fiat_ticker = self.__view.menu("Select the fiat you want to create account", fiat)
         self.__create_fiat_account(fiat_ticker=fiat_ticker)
     
@@ -180,7 +189,7 @@ class User:
         '''
         # QUERY gets all wallets
         # TESTED
-        wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={self.__access_info}")
+        wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={self.__access_info} AND Nome='{self.__exchange_name}'")
         data = "Wallets:\n"
 
         for wallet in wallets:
@@ -190,7 +199,7 @@ class User:
 
         # QUERY gets all fiat accounts
         # TESTED
-        accounts = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM contocorrente WHERE UserID={self.__access_info}")
+        accounts = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM contocorrente WHERE UserID={self.__access_info} AND Nome='{self.__exchange_name}'")
         data = "Accounts:\n"
         
         for account in accounts:
@@ -218,7 +227,7 @@ class User:
             # QUERY get order target info
             order_data = self.__database.select(f'''
                 SELECT `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`
-                FROM transazione
+                FROM exchanges.ordine
                 WHERE OrdineID = {best_order_id}
             ''')
             order_data = order_data[0]
@@ -226,13 +235,13 @@ class User:
             to_send_addr = order_data[2]
 
             # transaction to one who want to buy this coin
-            id1 = self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell)
+            id1 = self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell, wallet=True)
             
             to_recive_addr = order_data[3]
             amount_buy = order_data[0]
 
             # transaction to me
-            id2 = self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy)
+            id2 = self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy, wallet=False)
 
             # QUERY delete the order
             self.__database.delete(f"DELETE FROM ordine WHERE OrdineID = {best_order_id}")
@@ -267,15 +276,25 @@ class User:
             buyer.execute_state()
 
     def _sell(self):
-        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
+        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")
+        cryptos = list(map(lambda x: x[0], cryptos))
         crypto = self.__view.menu("Select the crypto you want to sell", cryptos)
         
-        fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
-        fiat = self.__view.menu("Select the fait you want to get", fiats)
+        wallets = self.__database.select(f"SELECT Indirizzo FROM wallet WHERE UserID='{self.__access_info}' AND `Ticker`='{crypto}' AND Nome='{self.__exchange_name}'")
+        wallets = list(map(lambda x: x[0], wallets))
+        ch_wallet = self.__view.menu("Select the account you want to use", wallets)
         
-        data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["crypto address", "fiat address", "Amount sell", "Amount buy"])
+        fiats = self.__database.select(f"SELECT Ticker FROM fiat")
+        fiats = list(map(lambda x: x[0], fiats))
+        fiat = self.__view.menu("Select the fiat you want to get", fiats)
         
-        self.__sell(data["fiat address"], data["crypto address"], crypto, fiat, float(data["Amount sell"]), float(data["Amount buy"]))
+        accounts = self.__database.select(f"SELECT Indirizzo FROM contocorrente WHERE UserID='{self.__access_info}' AND `Ticker`='{fiat}' AND Nome='{self.__exchange_name}'")
+        accounts = list(map(lambda x: x[0], accounts))
+        ch_account = self.__view.menu("Select the account you want to use", accounts)
+        
+        data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["Amount sell", "Amount buy"])
+        
+        self.__sell(ch_account, ch_wallet, crypto, fiat, float(data["Amount sell"]), float(data["Amount buy"]))
     
     def __buy(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int | float, amount_buy : int | float, tollerance : float=0.1):
         '''
@@ -305,13 +324,13 @@ class User:
             to_send_addr = order_data[2]
 
             # transaction to one who want to sell this coin
-            id1 = self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell)
+            id1 = self.__make_transaction(to_send_addr, address_sell, ticker_sell, amount_sell, wallet=True)
             
             to_recive_addr = order_data[3]
             amount_buy = order_data[0]
 
             # transaction to me
-            id2 = self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy)
+            id2 = self.__make_transaction(address_buy, to_recive_addr, ticker_buy, amount_buy, wallet=False)
 
             # QUERY delete the order
             self.__database.delete(f"DELETE FROM ordine WHERE OrdineID = {best_order_id}")
@@ -337,7 +356,6 @@ class User:
                 INSERT INTO Ordine (`Ticker compro`, `Ticker vendo`, `Quantita compro`, `Quantita vendo`, `Indirizzo compro`, `Indirizzo vendo`)
                 VALUES ("{ticker_buy}", "{ticker_sell}", "{amount_buy}", "{amount_sell}", "{address_sell}", "{address_buy}")
             ''')
-            print(self.__database.insered_id())
             
             seller = FakeUser(FakeUser.SELL_STATE, self.__exchange_name, crypto_ticker=ticker_buy, fiat_ticker=ticker_sell)
             
@@ -346,15 +364,25 @@ class User:
             seller.execute_state()
 
     def _buy(self):
-        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")[0]
+        cryptos = self.__database.select(f"SELECT Ticker FROM crypto")
+        cryptos = list(map(lambda x: x[0], cryptos))
         crypto = self.__view.menu("Select the crypto you want to buy", cryptos)
         
-        fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+        wallets = self.__database.select(f"SELECT Indirizzo FROM wallet WHERE UserID='{self.__access_info}' AND `Ticker`='{crypto}' AND Nome='{self.__exchange_name}'")
+        wallets = list(map(lambda x: x[0], wallets))
+        ch_wallet = self.__view.menu("Select the account you want to use", wallets)
+        
+        fiats = self.__database.select(f"SELECT Ticker FROM fiat")
+        fiats = list(map(lambda x: x[0], fiats))
         fiat = self.__view.menu("Select the fiat that you want to give", fiats)
         
-        data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["crypto address", "fiat address", "Amount buy", "Amount sell"])
+        accounts = self.__database.select(f"SELECT Indirizzo FROM contocorrente WHERE UserID='{self.__access_info}' AND `Ticker`='{fiat}' AND Nome='{self.__exchange_name}'")
+        accounts = list(map(lambda x: x[0], accounts))
+        ch_account = self.__view.menu("Select the account you want to use", accounts)
         
-        self.__buy(data["crypto address"], data["fiat address"], fiat, crypto, float(data["Amount sell"]), float(data["Amount buy"]))
+        data = self.__view.ask_for_multiples("Insert data to compleate the sell process", ["Amount buy", "Amount sell"])
+        
+        self.__buy(ch_wallet, ch_account, fiat, crypto, float(data["Amount sell"]), float(data["Amount buy"]))
 
     def __show_atm(self):
         atms_data = self.__database.select(f"SELECT Via, Citta, Provincia FROM atm WHERE Presso='{self.__exchange_name}'")
@@ -384,7 +412,8 @@ class User:
             ids = list(map(lambda x: str(x), ids))
             ch_id = self.__view.menu("Select the atm", atms, ids)
             
-            fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+            fiats = self.__database.select(f"SELECT Ticker FROM fiat")
+            fiats = list(map(lambda x: x[0], fiats))
             fiat = self.__view.menu("Select the fiat that you want to withdraw", fiats)
             
             addresses = self.__database.select(f"SELECT Indirizzo FROM contocorrente WHERE UserID='{self.__access_info}' AND `Ticker`='{fiat}' AND Nome='{self.__exchange_name}'")
@@ -393,11 +422,12 @@ class User:
             ch_addr = self.__view.menu("Select the address of the account", addresses)
             
             data = self.__view.ask_input("Insert amount of deposit")
-            print(ch_addr)
             
             self.__withdraw(ch_id, fiat, float(data), ch_addr)
         
-    
+        else:
+            self.__view.show_message("There are no atm in this exchange")
+        
     def __deposit(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
         deposit fiat money
@@ -419,7 +449,8 @@ class User:
             ids = list(map(lambda x: str(x), ids))
             ch_id = self.__view.menu("Select the atm", atms, ids)
             
-            fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
+            fiats = self.__database.select(f"SELECT Ticker FROM fiat")
+            fiats = list(map(lambda x: x[0], fiats))
             fiat = self.__view.menu("Select the fiat that you want to withdraw", fiats)
             
             addresses = self.__database.select(f"SELECT Indirizzo FROM contocorrente WHERE UserID='{self.__access_info}' AND `Ticker`='{fiat}' AND Nome='{self.__exchange_name}'")
@@ -428,8 +459,10 @@ class User:
             ch_addr = self.__view.menu("Select the address of the account", addresses)
             
             data = self.__view.ask_input("Insert amount of deposit")
-            print(ch_addr)
             self.__deposit(ch_id, fiat, float(data), ch_addr)
+        
+        else:
+            self.__view.show_message("There are no atm in this exchange")
     
     def run(self):
         '''
@@ -438,11 +471,11 @@ class User:
         while True:
             excs = self._current_exchanges()
             possibles = set(excs)
-            possibles.update({"update"})
+            possibles.update({"update", "exit"})
 
             ch = self.__view.menu("Choose avaiable exchanges", possibles)
             
-            if ch == "":
+            if ch == "exit":
                 break
 
             elif ch == "update":
@@ -463,7 +496,7 @@ class User:
         '''
         exit from the current exchange
         '''
-        self.__access_info = None
+        #self.__access_info = None
         self.__exchange_name = None
     
     
@@ -775,7 +808,7 @@ if __name__ == "__main__":
 
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
-    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123"]))
+    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "report"]))
     #user = User(GUI())
     user.run()
     user.exit()
