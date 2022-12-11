@@ -181,18 +181,22 @@ class User:
         # QUERY gets all wallets
         # TESTED
         wallets = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM wallet WHERE UserID={self.__access_info}")
-        self.__view.show_message("Wallets:")
+        data = "Wallets:\n"
 
         for wallet in wallets:
-            self.__view.show_message(f"Address: {wallet[0]}, balance: {wallet[1]}, contains: {wallet[2]}")
+            data += f"Address: {wallet[0]}, balance: {wallet[1]}, contains: {wallet[2]}\n"
+        
+        self.__view.show_message(data)
 
         # QUERY gets all fiat accounts
         # TESTED
         accounts = self.__database.select(f"SELECT Indirizzo, Saldo, Ticker FROM contocorrente WHERE UserID={self.__access_info}")
-        self.__view.show_message("Accounts:")
+        data = "Accounts:\n"
         
         for account in accounts:
-            self.__view.show_message(f"Address: {account[0]}, balance: {account[1]}, contains: {account[2]}")
+            data += f"Address: {account[0]}, balance: {account[1]}, contains: {account[2]}\n"
+        
+        self.__view.show_message(data)
     
     def __sell(self, address_buy : str, address_sell : str, ticker_sell : str, ticker_buy : str, amount_sell : int, amount_buy : int, tollerance : float=0.1):
         '''
@@ -353,16 +357,11 @@ class User:
         self.__buy(data["crypto address"], data["fiat address"], fiat, crypto, float(data["Amount sell"]), float(data["Amount buy"]))
 
     def __show_atm(self):
-        
-        try:
-            atms_data = self.__database.select(f"SELECT * FROM atm WHERE Presso='{self.__exchange_name}'")[0]
-        except IndexError:
-            self.__view.show_message("No atm in this exchange")
-            return False
-        else:
-            for atm_data in atms_data:
-                self.__view.show_message(atm_data)
-            return True
+        atms_data = self.__database.select(f"SELECT Via, Citta, Provincia FROM atm WHERE Presso='{self.__exchange_name}'")
+        data = []
+        for atm_data in atms_data:
+            data.append(f"Via: {atm_data[0]} Citta: {atm_data[1]} Provincia: {atm_data[2]}")
+        return data
     
     def __withdraw(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
         '''
@@ -379,17 +378,24 @@ class User:
         self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Prelievo')")    
 
     def _withdraw(self):
-        if self.__show_atm():
+        atms = self.__show_atm()
+        if len(atms) > 0:
             ids = self.__database.select(f"SELECT `Codice Icentificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
             ids = list(map(lambda x: str(x), ids))
-            ch_id = self.__view.menu("Select the atm", ids)
+            ch_id = self.__view.menu("Select the atm", atms, ids)
             
             fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
             fiat = self.__view.menu("Select the fiat that you want to withdraw", fiats)
             
-            data = self.__view.ask_for_multiples("Insert data to compleate the withdraw process", ["user address", "Amount"])
+            addresses = self.__database.select(f"SELECT Indirizzo FROM contocorrente WHERE UserID='{self.__access_info}' AND `Ticker`='{fiat}' AND Nome='{self.__exchange_name}'")
+            addresses = list(map(lambda x: x[0], addresses))
             
-            self.__withdraw(ch_id, fiat, float(data["Amount"]), data["user address"])
+            ch_addr = self.__view.menu("Select the address of the account", addresses)
+            
+            data = self.__view.ask_input("Insert amount of deposit")
+            print(ch_addr)
+            
+            self.__withdraw(ch_id, fiat, float(data), ch_addr)
         
     
     def __deposit(self, atm_id : str, fiat_ticker : str, amount_fiat : int, user_addr : str):
@@ -407,17 +413,23 @@ class User:
         self.__database.insert_into(f"INSERT INTO transazione_fisica (`Ticker fiat`, Quantita, Conto, ATM, Tipo) VALUES ('{fiat_ticker}', {amount_fiat}, '{user_addr}', '{atm_id}', 'Deposito')")
     
     def _deposit(self):
-        if self.__show_atm():
+        atms = self.__show_atm()
+        if len(atms) > 0:
             ids = self.__database.select(f"SELECT `Codice Icentificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
             ids = list(map(lambda x: str(x), ids))
-            ch_id = self.__view.menu("Select the atm", ids)
+            ch_id = self.__view.menu("Select the atm", atms, ids)
             
             fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
             fiat = self.__view.menu("Select the fiat that you want to withdraw", fiats)
             
-            data = self.__view.ask_for_multiples("Insert data to compleate the withdraw process", ["user address", "Amount"])
+            addresses = self.__database.select(f"SELECT Indirizzo FROM contocorrente WHERE UserID='{self.__access_info}' AND `Ticker`='{fiat}' AND Nome='{self.__exchange_name}'")
+            addresses = list(map(lambda x: x[0], addresses))
             
-            self.__deposit(ch_id, fiat, float(data["Amount"]), data["user address"])
+            ch_addr = self.__view.menu("Select the address of the account", addresses)
+            
+            data = self.__view.ask_input("Insert amount of deposit")
+            print(ch_addr)
+            self.__deposit(ch_id, fiat, float(data), ch_addr)
     
     def run(self):
         '''
@@ -763,8 +775,8 @@ if __name__ == "__main__":
 
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
-    #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "deposit", "1", "EUR", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "500"]))
-    user = User(GUI())
+    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123"]))
+    #user = User(GUI())
     user.run()
     user.exit()
     
