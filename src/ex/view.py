@@ -127,7 +127,7 @@ class HybridView(View):
 
 class TKview:
     
-    def __init__(self, elements : list[dict], handler : Callable, window_size : str="600x600") -> None:
+    def __init__(self, elements : list[dict], handler : Callable, window_size : str="900x600") -> None:
         super().__init__()
         self.window = tk.Tk()
         self.window.geometry(window_size)
