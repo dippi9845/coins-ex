@@ -1,5 +1,5 @@
 from typing import Any, Callable
-from view import View, TerminalView, HybridView
+from view import View, TerminalView, HybridView, GUI
 from database import Database
 from hashlib import sha256
 from time import time
@@ -426,7 +426,7 @@ class User:
         while True:
             excs = self._current_exchanges()
             possibles = set(excs)
-            possibles.update({"update", ""})
+            possibles.update({"update"})
 
             ch = self.__view.menu("Choose avaiable exchanges", possibles)
             
@@ -764,7 +764,8 @@ if __name__ == "__main__":
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "deposit", "1", "EUR", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "500"]))
-    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123"]))
+    user = User(GUI())
     user.run()
     user.exit()
+    
     
