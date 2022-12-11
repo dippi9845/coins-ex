@@ -1,7 +1,7 @@
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Callable
 from os import system
-
+import tkinter as tk
 
 class View:
 
@@ -134,3 +134,149 @@ class HybridView(View):
             rtr[i] = self.__get_value(f"{i}: ")
         
         return rtr
+
+
+class TKview:
+    
+    def __init__(self, elements : list[dict], handler : Callable, window_size : str="600x600") -> None:
+        super().__init__()
+        self.window = tk.Tk()
+        self.window.geometry(window_size)
+        self.window.title("Coins-EX")
+        self.handler = handler
+        
+        self.text_variables = {}
+        
+        for i in elements:
+            
+            if i["type"] == "label":
+                tk.Label(self.window, text=i["text"]).pack()
+            
+            elif i["type"] == "button-menu":
+                tk.Button(self.window, text=i["text"], command=lambda: self.__close(i["value"])).pack()
+            
+            elif i["type"] == "input":
+                var = tk.StringVar()
+                tk.Entry(self.window, textvariable=var).pack()
+                self.text_variables[i["text"]] = var
+            
+            elif i["type"] == "button-confirm":
+                tk.Button(self.window, text="confirm", command=lambda: self.__close(self.text_variables)).pack()
+    
+    def __close(self, value):
+        self.handler(value)
+        self.window.destroy()
+    
+    
+    def run(self):
+        self.window.mainloop()
+
+
+class GUI(View):  
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.to_add = []
+        self.returned = None
+    
+    
+    def _add_elements_next_view(self, elements : list):
+        self.to_add = elements
+    
+    
+    def ask_input(self, msg : str) -> str:
+        elements = [{
+            "type": "label",
+            "text": msg
+        },
+        {
+            "type": "input",
+            "text": "data"
+        },
+        {
+            "type": "button-confirm"
+        }] + self.to_add
+        
+        self.to_add = []
+        
+        TKview(elements, self.__get_return_value).run()
+        return self.returned
+        
+
+    def __get_return_value(self, value=None):
+        
+        if isinstance(value, dict):
+            for i, j in value.items():
+                value[i] = j.get()
+        
+            self.returned = value
+        
+        elif isinstance(value, tk.StringVar):
+            self.returned = value.get()
+        
+        elif isinstance(value, list):
+            self.returned = list(map(lambda x: x.get(), value))
+    
+        else:
+            self.returned = value
+    
+    
+    def show_message(self, msg : str) -> Any:
+        elements = [{
+            "type": "label",
+            "text": msg
+        }] + self.to_add
+        
+        self.to_add = []
+        
+        TKview(elements, self.__get_return_value).run()
+
+    
+    def menu(self, msg : str, choises : list[str]) -> str:
+        elements = [{
+            "type": "label",
+            "text": msg
+        }]
+        for i in choises:
+            elements.append({
+                "type": "button-menu",
+                "text": i,
+                "value": i
+            })
+        
+        elements += self.to_add
+        self.to_add = []
+        
+        TKview(elements, self.__get_return_value).run()
+        return self.returned
+
+
+    
+    def chagne_view(self, name_view : str) -> Any:
+        pass
+    
+
+    
+    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+        elements = [{
+            "type": "label",
+            "text": msg
+        }]
+        
+        for i in values:
+            elements.append({
+                "type": "input",
+                "text": i
+            })
+        
+        elements += self.to_add
+        
+        elements.append({
+            "type":"button-confirm"
+        })
+        
+        
+        self.to_add = []
+        
+        TKview(elements, self.__get_return_value).run()
+        return self.returned
