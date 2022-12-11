@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Any, Callable
 from os import system
 import tkinter as tk
+from functools import partial
 
 class View:
 
@@ -90,36 +91,30 @@ class QueueView(View):
             rtr[i] = self.queue.pop(0)
         
         return rtr
+    
+    
+    def _has_next(self) -> bool:
+        return len(self.queue) > 0
 
 
 class HybridView(View):
     
     def __init__(self, values : str | list[str]=[], sep : str=" ") -> None:
         super().__init__()
-        self.queue = values.split(sep) if isinstance(values, str) else values
-    
-    
-    def __get_value(self, msg : str) -> str:
-        if len(self.queue) > 0:
-            return self.queue.pop(0)
-        
-        else:
-            return input(msg)
+        self.queue = QueueView(values, sep)
+        self.gui = GUI()
     
     
     def ask_input(self, msg : str) -> str:
-        return self.__get_value(msg)
+        return self.queue.ask_input(msg) if self.queue._has_next() else self.gui.ask_input(msg)
 
     
     def show_message(self, msg : str) -> Any:
-        print(msg)
+        print(msg) if self.queue._has_next() else self.gui.show_message(msg)
 
 
-    def menu(self, msg : str, choises : list[str]) -> str:
-        self.show_message(msg)
-        #self.show_message(list_char)
-        self.show_message(f"\n-" + f"\n-".join(choises))
-        return self.__get_value("\n-> ")
+    def menu(self, msg : str, choises : list[str], values : list[str] = []) -> str:
+        return self.queue.menu(msg, choises) if self.queue._has_next() else self.gui.menu(msg, choises, values)
 
 
     def chagne_view(self, name_view : str) -> Any:
@@ -127,13 +122,7 @@ class HybridView(View):
     
 
     def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
-        self.show_message(msg)
-        rtr = {}
-        
-        for i in values:
-            rtr[i] = self.__get_value(f"{i}: ")
-        
-        return rtr
+        return self.queue.ask_for_multiples(msg, values) if self.queue._has_next() else self.gui.ask_for_multiples(msg, values)
 
 
 class TKview:
@@ -147,13 +136,17 @@ class TKview:
         
         self.text_variables = {}
         
+        self.__tmp = {}
+        
         for i in elements:
             
             if i["type"] == "label":
                 tk.Label(self.window, text=i["text"]).pack()
             
             elif i["type"] == "button-menu":
-                tk.Button(self.window, text=i["text"], command=lambda: self.__close(i["value"])).pack()
+                self.__tmp[i["value"]] = partial(self.__close, i["value"])
+                
+                tk.Button(self.window, text=i["text"], command=self.__tmp[i["value"]]).pack()
             
             elif i["type"] == "input":
                 var = tk.StringVar()
@@ -200,7 +193,7 @@ class GUI(View):
         self.to_add = []
         
         TKview(elements, self.__get_return_value).run()
-        return self.returned
+        return self.returned["data"]
         
 
     def __get_return_value(self, value=None):
@@ -221,10 +214,12 @@ class GUI(View):
             self.returned = value
     
     
-    def show_message(self, msg : str) -> Any:
+    def show_message(self, msg : str) -> None:
         elements = [{
             "type": "label",
             "text": msg
+        },{
+            "type": "button-confirm"   
         }] + self.to_add
         
         self.to_add = []
@@ -232,17 +227,22 @@ class GUI(View):
         TKview(elements, self.__get_return_value).run()
 
     
-    def menu(self, msg : str, choises : list[str]) -> str:
+    def menu(self, msg : str, choises : list[str], values : list[str]=[]) -> str:
         elements = [{
             "type": "label",
             "text": msg
         }]
-        for i in choises:
-            elements.append({
+        for index, i in enumerate(choises):
+            to_insert ={
                 "type": "button-menu",
                 "text": i,
                 "value": i
-            })
+            }
+            
+            if index < len(values):
+                to_insert["value"] = values[index]
+            
+            elements.append(to_insert)
         
         elements += self.to_add
         self.to_add = []
@@ -264,6 +264,10 @@ class GUI(View):
         }]
         
         for i in values:
+            elements.append({
+                "type": "label",
+                "text": i  
+            })
             elements.append({
                 "type": "input",
                 "text": i
