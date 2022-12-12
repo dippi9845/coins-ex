@@ -449,17 +449,21 @@ class User:
             ids = list(map(lambda x: str(x), ids))
             ch_id = self.__view.menu("Select the atm", atms, ids)
             
-            fiats = self.__database.select(f"SELECT Ticker FROM fiat")
+            fiats = self.__database.select(f"SELECT `Ticker fiat` FROM contante WHERE `Codice ATM`='{ch_id}'")
             fiats = list(map(lambda x: x[0], fiats))
             fiat = self.__view.menu("Select the fiat that you want to withdraw", fiats)
             
             addresses = self.__database.select(f"SELECT Indirizzo FROM contocorrente WHERE UserID='{self.__access_info}' AND `Ticker`='{fiat}' AND Nome='{self.__exchange_name}'")
             addresses = list(map(lambda x: x[0], addresses))
             
-            ch_addr = self.__view.menu("Select the address of the account", addresses)
+            if len(addresses) > 0:
+                ch_addr = self.__view.menu("Select the address of the account", addresses)
+                
+                data = self.__view.ask_input("Insert amount of deposit")
+                self.__deposit(ch_id, fiat, float(data), ch_addr)
             
-            data = self.__view.ask_input("Insert amount of deposit")
-            self.__deposit(ch_id, fiat, float(data), ch_addr)
+            else:
+                self.__view.show_message("You don't have any account with this fiat")
         
         else:
             self.__view.show_message("There are no atm in this exchange")
@@ -808,7 +812,7 @@ if __name__ == "__main__":
 
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
-    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "report"]))
+    user = User(HybridView(["Coinbase", "access", "filippo@gmail.com", "456", "deposit"]))
     #user = User(GUI())
     user.run()
     user.exit()
