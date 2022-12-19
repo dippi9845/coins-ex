@@ -14,7 +14,8 @@ class Admin:
             "create exchange" : self.create_exchange,
             "create atm" : self.create_atm,
             "create crypto" : self.create_crypto,
-            "add worker" : self.add_workers
+            "add worker" : self.add_workers,
+            "show workers" : self.show_workers
             
         }
         self.main()
@@ -55,6 +56,25 @@ class Admin:
                     INSERT INTO dipendente (Nome, Cognome, Carica, Reparto, Residenza, Salario, Presso, Supervisore)
                     VALUES ('{worker_data['name']}', '{worker_data['surname']}', '{worker_data['position']}', '{worker_data['department']}', '{worker_data['residence']}', {worker_data['salary']}, '{exchange_name}', {worker_data['supervisor']})
                 """)
+            
+    
+    def show_workers(self):
+        columns = ["Carica", "Reparto", "Nome", "Cognome", "Residenza", "Matricola", "Salario", "Presso", "Supervisore"]
+        workers = self.db.select("SELECT " + ", ".join(columns) + " FROM dipendente")
+        
+        to_show = ""
+        
+        for worker in workers:
+            for col, val in zip(columns, worker):
+                
+                if col == "Supervisore" and val == None:
+                    continue
+                
+                to_show += f"{col} : {val}, "
+            
+            to_show += "\n"
+        
+        self.view.show_message(to_show)
     
     
     def add_fiat(self):
@@ -105,5 +125,5 @@ class Admin:
     
 
 if __name__ == "__main__":
-    #Admin(GUI())
-    Admin(HybridView(["create atm", "Coinbase", "Via Roma", "Roma", "RM", "ATM-001", "1.0", "10", "USD", "1000"]))
+    Admin(GUI())
+    #Admin(HybridView(["create atm", "Coinbase", "Via Roma", "Roma", "RM", "ATM-001", "1.0", "10", "USD", "1000"]))
