@@ -68,6 +68,7 @@ class Admin:
             for col, val in zip(columns, worker):
                 
                 if col == "Supervisore" and val == None:
+                    to_show = to_show[:-2]
                     continue
                 
                 to_show += f"{col} : {val}, "
