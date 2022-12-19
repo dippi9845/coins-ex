@@ -17,10 +17,6 @@ class View:
     @abstractmethod
     def menu(self, msg : str, choises : list[str]) -> str:
         pass
-
-    @abstractmethod
-    def chagne_view(self, name_view : str) -> Any:
-        pass
     
     @abstractmethod
     def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
@@ -47,10 +43,6 @@ class TerminalView(View):
         else:
             self.show_message(f"{ch} is not an option, retry")
             return self.menu(msg, choises, list_char=list_char)
-    
-    
-    def chagne_view(self, name_view : str) -> Any:
-        system("cls")
     
     
     def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
@@ -115,10 +107,6 @@ class HybridView(View):
 
     def menu(self, msg : str, choises : list[str], values : list[str] = []) -> str:
         return self.queue.menu(msg, choises) if self.queue._has_next() else self.gui.menu(msg, choises, values)
-
-
-    def chagne_view(self, name_view : str) -> Any:
-        pass
     
 
     def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
@@ -249,13 +237,6 @@ class GUI(View):
         
         TKview(elements, self.__get_return_value).run()
         return self.returned
-
-
-    
-    def chagne_view(self, name_view : str) -> Any:
-        pass
-    
-
     
     def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
         elements = [{
