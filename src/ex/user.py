@@ -110,7 +110,7 @@ class User:
         self.__database.insert_into(f"INSERT INTO registrati (ID, Email, Password, Exchange) VALUES ({self.__access_info}, '{user_data['email']}', '{user_data['password']}', '{exchange_name}')")
         fiats = self.__database.select(f"SELECT Ticker FROM fiat")[0]
         fiat = self.__view.menu("Select the fiat you want to first deposit", fiats)
-        self.__create_fiat_account(fiat)
+        self.__create_fiat_account(fiat, amount=1000)
         self.__registered_exchanges.append(exchange_name)
         return True
         
@@ -166,7 +166,7 @@ class User:
         crypto_ticker = self.__view.menu("Select the crypto you want to create wallet", cryptos)
         self.__create_wallet(crypto_ticker)
 
-    def __create_fiat_account(self, fiat_ticker : str="EUR", amount : int=1000):
+    def __create_fiat_account(self, fiat_ticker : str="EUR", amount : int=1):
         if self.__access_info is not None and self.__exchange_name is not None:
             to_hash = str(self.__access_info).encode() + b"ID" + str(int(time())).encode() + b"RND" + randbytes(10)
             
@@ -813,8 +813,9 @@ if __name__ == "__main__":
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
     #user = User(HybridView(["Coinbase", "access", "filippo@gmail.com", "456", "deposit"]))
-    #user = User(GUI())
-    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123"]))
+    user = User(GUI())
+    #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123"]))
+    
     user.run()
     user.exit()
     
