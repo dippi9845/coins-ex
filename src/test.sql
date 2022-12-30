@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS `atm`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `atm` (
-  `Codice Icentificativo` int unsigned NOT NULL AUTO_INCREMENT,
+  `Codice Identificativo` int unsigned NOT NULL AUTO_INCREMENT,
   `Via` varchar(255) NOT NULL,
   `Citta` varchar(255) NOT NULL,
   `Provincia` varchar(255) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE `atm` (
   `Versione Software` varchar(255) NOT NULL,
   `Presso` varchar(255) NOT NULL,
   `Commissione` int unsigned NOT NULL,
-  PRIMARY KEY (`Codice Icentificativo`),
+  PRIMARY KEY (`Codice Identificativo`),
   KEY `exchange_idx` (`Presso`),
   CONSTRAINT `exchange` FOREIGN KEY (`Presso`) REFERENCES `exchange` (`Nome`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -253,7 +253,7 @@ CREATE TABLE `transazione_fisica` (
   PRIMARY KEY (`ID`),
   KEY `conto_corrente_fk_idx` (`Conto`),
   KEY `ATM_fk_idx` (`ATM`),
-  CONSTRAINT `ATM_fk` FOREIGN KEY (`ATM`) REFERENCES `atm` (`Codice Icentificativo`),
+  CONSTRAINT `ATM_fk` FOREIGN KEY (`ATM`) REFERENCES `atm` (`Codice Identificativo`),
   CONSTRAINT `conto_corrente_fk` FOREIGN KEY (`Conto`) REFERENCES `contocorrente` (`Indirizzo`),
   CONSTRAINT `transazione_fisica_chk_2` CHECK ((`Quantita` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -326,4 +326,3 @@ VALUES
 -- CREATE INDEX FK_Exchange_Dipendente ON Dipendente (Presso);
 -- ALTER TABLE Dipendente ADD CONSTRAINT FK_Dipendente_Dipendente FOREIGN KEY (Supervisore) REFERENCES Dipendente(Matricola);
 -- ALTER TABLE Dipendente ADD CONSTRAINT FK_Exchange_Dipendente FOREIGN KEY (Presso) REFERENCES Dipendente(Presso);
-
