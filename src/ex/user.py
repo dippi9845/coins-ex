@@ -396,7 +396,7 @@ class User:
         withdraw fiat money 
         '''
         # TODO: CREATE a transaction
-        commissione = self.__database.select(f"SELECT Commissione FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
+        commissione = self.__database.select(f"SELECT Commissione FROM atm WHERE `Codice Identificativo`='{atm_id}'")[0][0]
         
         to_decrease = amount_fiat + commissione
         
@@ -408,7 +408,7 @@ class User:
     def _withdraw(self):
         atms = self.__show_atm()
         if len(atms) > 0:
-            ids = self.__database.select(f"SELECT `Codice Icentificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
+            ids = self.__database.select(f"SELECT `Codice Identificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
             ids = list(map(lambda x: str(x), ids))
             ch_id = self.__view.menu("Select the atm", atms, ids)
             
@@ -432,7 +432,7 @@ class User:
         '''
         deposit fiat money
         '''
-        commissione = self.__database.select(f"SELECT Commissione FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
+        commissione = self.__database.select(f"SELECT Commissione FROM atm WHERE `Codice Identificativo`='{atm_id}'")[0][0]
         
         to_increase = amount_fiat - commissione
         
@@ -445,7 +445,7 @@ class User:
     def _deposit(self):
         atms = self.__show_atm()
         if len(atms) > 0:
-            ids = self.__database.select(f"SELECT `Codice Icentificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
+            ids = self.__database.select(f"SELECT `Codice Identificativo` FROM atm WHERE Presso='{self.__exchange_name}'")[0]
             ids = list(map(lambda x: str(x), ids))
             ch_id = self.__view.menu("Select the atm", atms, ids)
             
@@ -812,8 +812,9 @@ if __name__ == "__main__":
 
     
     #user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123", "sell", "BTC", "EUR", "db40ade6dc7dda50f3c047982c3a52117f7aa7f33da8fe744b8d71e8df4e122a", "e70c5ba613eb03a38acbf6de5e85a6f3e5db06aa854de9bc94264261631c4fcd", "2", "500"]))
-    user = User(HybridView(["Coinbase", "access", "filippo@gmail.com", "456", "deposit"]))
+    #user = User(HybridView(["Coinbase", "access", "filippo@gmail.com", "456", "deposit"]))
     #user = User(GUI())
+    user = User(HybridView(["Binance", "access", "filippo@gmail.com", "123"]))
     user.run()
     user.exit()
     

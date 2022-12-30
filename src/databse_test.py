@@ -307,12 +307,12 @@ class DatabseTest(unittest.TestCase):
         
         self.db.insert_into(f'''
             INSERT INTO contocorrente (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 1000, "{name}", "EUR")
+            VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 1000, "{ex_name}", "EUR")
         ''')
 
         self.db.insert_into(f'''
             INSERT INTO wallet (UserID, Indirizzo, Saldo, Nome, Ticker)
-            VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 0, "{name}", "BTC")
+            VALUES ({user_id}, "{sha256(to_hash).hexdigest()}", 0, "{ex_name}", "BTC")
         ''')
 
     def test_make_transaction(self):
@@ -665,7 +665,7 @@ class DatabseTest(unittest.TestCase):
         
         atm_id = self.__create_atm(fiat_ticker=fiat_ticker, fiat_amount=initial_fiat_amount)
         
-        commissione = self.db.select(f"SELECT Commissione FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
+        commissione = self.db.select(f"SELECT Commissione FROM atm WHERE `Codice Identificativo`='{atm_id}'")[0][0]
         
         to_decrease = amount_fiat + commissione
         
@@ -714,7 +714,7 @@ class DatabseTest(unittest.TestCase):
         
         atm_id = self.__create_atm(fiat_ticker=fiat_ticker, fiat_amount=initial_fiat_amount)
         
-        commissione = self.db.select(f"SELECT Commissione FROM atm WHERE `Codice Icentificativo`='{atm_id}'")[0][0]
+        commissione = self.db.select(f"SELECT Commissione FROM atm WHERE `Codice Identificativo`='{atm_id}'")[0][0]
         
         to_increase = amount_fiat - commissione
         

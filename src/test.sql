@@ -244,6 +244,7 @@ DROP TABLE IF EXISTS `transazione_fisica`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `transazione_fisica` (
   `ID` int NOT NULL AUTO_INCREMENT,
+  `Ticker fiat` varchar(255) NOT NULL,
   `Quantita` int unsigned NOT NULL,
   `Data` date NOT NULL DEFAULT (curdate()),
   `Ora` time NOT NULL DEFAULT (curtime()),
@@ -255,6 +256,7 @@ CREATE TABLE `transazione_fisica` (
   KEY `ATM_fk_idx` (`ATM`),
   CONSTRAINT `ATM_fk` FOREIGN KEY (`ATM`) REFERENCES `atm` (`Codice Identificativo`),
   CONSTRAINT `conto_corrente_fk` FOREIGN KEY (`Conto`) REFERENCES `contocorrente` (`Indirizzo`),
+  CONSTRAINT `fiat_fk` FOREIGN KEY (`Ticker fiat`) REFERENCES `fiat` (`Ticker`),
   CONSTRAINT `transazione_fisica_chk_2` CHECK ((`Quantita` > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
