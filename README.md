@@ -11,3 +11,8 @@ Installing requirements
 ```bash
 pip install -r requirements.txt
 ```
+
+Creating database
+```bash
+python3 database,py
+```
