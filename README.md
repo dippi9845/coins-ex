@@ -18,7 +18,12 @@ python3 database.py
 ```
 
 ## Uses
-For using it just type
+For using it, like user
 ```bash
-python3 database.py
+python3 user.py
+```
+
+For using it, like administrator
+```bash
+python3 admin.py
 ```
