@@ -12,7 +12,13 @@ Installing requirements
 pip install -r requirements.txt
 ```
 
-Creating database
+Creating database, in ex folder
 ```bash
-python3 database,py
+python3 database.py
+```
+
+## Uses
+For using it just type
+```bash
+python3 database.py
 ```
