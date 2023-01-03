@@ -96,7 +96,7 @@ class Admin:
         VALUES ('{exchange_data['name']}', '{exchange_data['operational headquarters']}', '{exchange_data['registered office']}', '{exchange_data['website']}', '{exchange_data['founder']}')
         """)
 
-        ch = self.view.menu("Wanto to add workers?", ["y", "n"])
+        ch = self.view.menu("Wanto to add workers?", ["yes", "no"])
         
         if ch == 'y':
             self.add_workers(exchange_data['name'])
