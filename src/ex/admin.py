@@ -59,8 +59,11 @@ class Admin:
             
     
     def show_workers(self):
+        exs = self.db.select("SELECT Nome FROM exchange")[0]
+        ex = self.view.menu("Choose exchange", exs)
+        
         columns = ["Carica", "Reparto", "Nome", "Cognome", "Residenza", "Matricola", "Salario", "Presso", "Supervisore"]
-        workers = self.db.select("SELECT " + ", ".join(columns) + " FROM dipendente")
+        workers = self.db.select("SELECT " + ", ".join(columns) + " FROM dipendente WHERE Presso = '" + ex + "'")
         
         to_show = ""
         
