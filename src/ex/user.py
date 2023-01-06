@@ -12,7 +12,7 @@ import string
 from sys import argv
 import signal
 from math import sin, cos
-
+from typing import List
 
 class User:
 
@@ -117,7 +117,7 @@ class User:
     def _set_exchange(self, name : str):
         self.__exchange_name = name
 
-    def _current_exchanges(self) -> list[str]:
+    def _current_exchanges(self) -> List[str]:
         '''
         list all currrent databases
         '''

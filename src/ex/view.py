@@ -3,6 +3,7 @@ from typing import Any, Callable
 from os import system
 import tkinter as tk
 from functools import partial
+from typing import List
 
 class View:
 
@@ -15,11 +16,11 @@ class View:
         pass
 
     @abstractmethod
-    def menu(self, msg : str, choises : list[str]) -> str:
+    def menu(self, msg : str, choises : List[str]) -> str:
         pass
     
     @abstractmethod
-    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
         pass
 
 
@@ -31,7 +32,7 @@ class TerminalView(View):
     def show_message(self, msg: str) -> Any:
         return print(msg)
     
-    def menu(self, msg : str, choises : list[str], list_char = "-") -> str:
+    def menu(self, msg : str, choises : List[str], list_char = "-") -> str:
         self.show_message(msg)
         #self.show_message(list_char)
         self.show_message(f"\n{list_char}" + f"\n{list_char}".join(choises))
@@ -45,7 +46,7 @@ class TerminalView(View):
             return self.menu(msg, choises, list_char=list_char)
     
     
-    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
         self.show_message(msg)
         rtr = {}
         for value in values:
@@ -55,7 +56,7 @@ class TerminalView(View):
 
 class QueueView(View):
     
-    def __init__(self, values : str | list[str], sep : str=" ") -> None:
+    def __init__(self, values : str | List[str], sep : str=" ") -> None:
         super().__init__()
         self.queue = values.split(sep) if isinstance(values, str) else values
     
@@ -68,7 +69,7 @@ class QueueView(View):
         pass
 
 
-    def menu(self, msg : str, choises : list[str]) -> str:
+    def menu(self, msg : str, choises : List[str]) -> str:
         return self.queue.pop(0)
 
 
@@ -76,7 +77,7 @@ class QueueView(View):
         pass
     
 
-    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
         rtr = {}
         
         for i in values:
@@ -91,7 +92,7 @@ class QueueView(View):
 
 class HybridView(View):
     
-    def __init__(self, values : str | list[str]=[], sep : str=" ") -> None:
+    def __init__(self, values : str | List[str]=[], sep : str=" ") -> None:
         super().__init__()
         self.queue = QueueView(values, sep)
         self.gui = GUI()
@@ -105,11 +106,11 @@ class HybridView(View):
         print(msg) if self.queue._has_next() else self.gui.show_message(msg)
 
 
-    def menu(self, msg : str, choises : list[str], values : list[str] = []) -> str:
+    def menu(self, msg : str, choises : List[str], values : List[str] = []) -> str:
         return self.queue.menu(msg, choises) if self.queue._has_next() else self.gui.menu(msg, choises, values)
     
 
-    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
         return self.queue.ask_for_multiples(msg, values) if self.queue._has_next() else self.gui.ask_for_multiples(msg, values)
 
 
@@ -215,7 +216,7 @@ class GUI(View):
         TKview(elements, self.__get_return_value).run()
 
     
-    def menu(self, msg : str, choises : list[str], values : list[str]=[]) -> str:
+    def menu(self, msg : str, choises : List[str], values : List[str]=[]) -> str:
         elements = [{
             "type": "label",
             "text": msg
@@ -238,7 +239,7 @@ class GUI(View):
         TKview(elements, self.__get_return_value).run()
         return self.returned
     
-    def ask_for_multiples(self, msg : str, values : list[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
         elements = [{
             "type": "label",
             "text": msg
