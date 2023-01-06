@@ -20,7 +20,7 @@ class View:
         pass
     
     @abstractmethod
-    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str, str]:
         pass
 
 
@@ -46,7 +46,7 @@ class TerminalView(View):
             return self.menu(msg, choises, list_char=list_char)
     
     
-    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str, str]:
         self.show_message(msg)
         rtr = {}
         for value in values:
@@ -110,7 +110,7 @@ class HybridView(View):
         return self.queue.menu(msg, choises) if self.queue._has_next() else self.gui.menu(msg, choises, values)
     
 
-    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str, str]:
         return self.queue.ask_for_multiples(msg, values) if self.queue._has_next() else self.gui.ask_for_multiples(msg, values)
 
 
@@ -239,7 +239,7 @@ class GUI(View):
         TKview(elements, self.__get_return_value).run()
         return self.returned
     
-    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str, str]:
         elements = [{
             "type": "label",
             "text": msg
