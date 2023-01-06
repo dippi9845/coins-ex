@@ -3,7 +3,7 @@ from typing import Any, Callable
 from os import system
 import tkinter as tk
 from functools import partial
-from typing import List
+from typing import List, Dict
 
 class View:
 
@@ -20,7 +20,7 @@ class View:
         pass
     
     @abstractmethod
-    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
         pass
 
 
@@ -46,7 +46,7 @@ class TerminalView(View):
             return self.menu(msg, choises, list_char=list_char)
     
     
-    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
         self.show_message(msg)
         rtr = {}
         for value in values:
@@ -77,7 +77,7 @@ class QueueView(View):
         pass
     
 
-    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
         rtr = {}
         
         for i in values:
@@ -110,13 +110,13 @@ class HybridView(View):
         return self.queue.menu(msg, choises) if self.queue._has_next() else self.gui.menu(msg, choises, values)
     
 
-    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
         return self.queue.ask_for_multiples(msg, values) if self.queue._has_next() else self.gui.ask_for_multiples(msg, values)
 
 
 class TKview:
     
-    def __init__(self, elements : list[dict], handler : Callable, window_size : str="900x600") -> None:
+    def __init__(self, elements : List[dict], handler : Callable, window_size : str="900x600") -> None:
         super().__init__()
         self.window = tk.Tk()
         self.window.geometry(window_size)
@@ -239,7 +239,7 @@ class GUI(View):
         TKview(elements, self.__get_return_value).run()
         return self.returned
     
-    def ask_for_multiples(self, msg : str, values : List[str]) -> dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
         elements = [{
             "type": "label",
             "text": msg
