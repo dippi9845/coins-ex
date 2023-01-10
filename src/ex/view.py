@@ -77,7 +77,7 @@ class QueueView(View):
         pass
     
 
-    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str]:
+    def ask_for_multiples(self, msg : str, values : List[str]) -> Dict[str, str]:
         rtr = {}
         
         for i in values:
